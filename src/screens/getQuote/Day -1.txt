@@ -1,0 +1,64 @@
+Landing
+-------------
+1. Description Justification Center. - Done
+
+2. Visitors of Canada -- same as above. - Done
+
+------------------------------------------------------------------
+
+One Time Login - Feature  -- Done
+
+------------------------------------------------------------------
+
+Licenese Details - Today
+------------------
+Date picker  restrict for current and previous date, - Done
+
+------------------------------------------------------------------
+
+Corporation -- Done
+---------------
+Are you registered as a Corporation?
+Yes No
+
+Date picker  restrict for current and previous date,
+
+yes -->>> show Form
+No --->>>> Hide Form 
+
+------------------------------------------------------------------
+
+Loading
+--------------
+Navigate to main page - 2s - Done
+
+------------------------------------------------------------------
+
+Logout
+--------------
+Keep logout alert - Done
+
+------------------------------------------------------------------
+
+
+
+Get Quote
+---------
+
+
+Super visa auto populate the duration and Last date. - Done
+When Duration enter some days first date and last date need to populate.  - Done
+Departure from date -->>> populate the date for current date.  - Done
+Add questionary - Page No. 5 in Policy Document Exclusion Point No. 1 (For Benefiary)
+    - Today
+
+Policy
+---------
+
+Display the Documents ----- Key is not Coming
+Policy Type  ----- Done
+
+
+Endorsements modules   --->>>>> Need api
+---------------------
+
