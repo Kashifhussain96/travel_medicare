@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { SafeAreaView, StyleSheet, Text, View, Image, ImageBackground, TouchableOpacity, AsyncStorage } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, View, Image, ImageBackground, TouchableOpacity, AsyncStorage, ScrollView } from 'react-native';
 import { connect } from "react-redux";
 
 import Modal from '../../utils/modal';
@@ -20,10 +20,10 @@ class LoginScreen extends React.Component {
       this.state = {
          // email: "dalbir@riskcare.ca",
          // password: "7895@Tranmere",
-         // email: "aravindh@kitkattech.com",
-         // password: "123@aravindh",
-         email:"",
-         password:""
+         email: "aravindh@kitkattech.com",
+         password: "123@aravindh",
+         // email: "",
+         // password: ""
       };
 
 
@@ -183,9 +183,10 @@ class LoginScreen extends React.Component {
 
       return (
 
-         <ImageBackground source={require('../../assets/images/bg.png')}
-            style={[styles.logo]}>
+         <ImageBackground source={require('../../assets/images/bg.png')} style={[styles.logo]}>
 
+
+         <ScrollView keyboardShouldPersistTaps="always">
 
 
             <Text style={styles.hello}>Hello</Text>
@@ -240,6 +241,7 @@ class LoginScreen extends React.Component {
 
 
 
+            </ScrollView>
 
 
 

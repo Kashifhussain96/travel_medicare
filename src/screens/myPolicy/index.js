@@ -207,6 +207,8 @@ class MyPolicy extends React.Component {
             return "Active"
         } else if (status == 6) {
             return "Policy Change Pending"
+        }else if (status == 7) {
+            return "Matured"
         }
     }
 

@@ -109,6 +109,7 @@ class EditQuote extends React.Component {
       policyBeneficiary: "",
       showPolicyDob: false,
       disableAll: false,
+      policyBackUp: []
     };
   }
 
@@ -556,6 +557,7 @@ class EditQuote extends React.Component {
         }
         this.setState({
           policyData: data,
+          policyBackUp : data
         });
       })
       .catch((err) => { });
@@ -1523,13 +1525,14 @@ class EditQuote extends React.Component {
     if (duration == 0) {
       this.setState({
         departureDate: date,
+        showPicker: false,
       });
       return;
     }
 
     if (duration > 0) {
       ModalAlert.error(
-        "First date of cover should be greater than arrival date."
+        "First date of cover must be greater than departure date"
       );
       return;
     }
@@ -1689,6 +1692,20 @@ class EditQuote extends React.Component {
         (mm.toString().length == 1 ? "0" + mm : mm) +
         "-" +
         (dd.toString().length == 1 ? "0" + dd : dd);
+
+
+
+        if(!this.state.superVisa){
+          let data = [...this.state.policyData]
+          data.splice(0,2)
+          this.setState({
+            policyData : data
+          })
+        }else{
+          this.setState({
+            policyData : this.state.policyBackUp
+          })
+        }
 
       this.setState({
         superVisa: !this.state.superVisa,
@@ -2224,7 +2241,7 @@ class EditQuote extends React.Component {
                 <Text
                   style={{
                     textAlign: "center",
-                    width: "25%",
+                    flex:1,
                     color: "white",
                     fontSize: 14,
                   }}
@@ -2234,7 +2251,7 @@ class EditQuote extends React.Component {
                 <Text
                   style={{
                     textAlign: "center",
-                    width: "25%",
+                    flex:1,
                     color: "white",
                     fontSize: 14,
                   }}
@@ -2244,7 +2261,7 @@ class EditQuote extends React.Component {
                 <Text
                   style={{
                     textAlign: "center",
-                    width: "25%",
+                    flex:1,
                     color: "white",
                     fontSize: 14,
                   }}
@@ -2254,7 +2271,7 @@ class EditQuote extends React.Component {
                 <Text
                   style={{
                     textAlign: "center",
-                    width: "25%",
+                    flex:1,
                     color: "white",
                     fontSize: 14,
                   }}
@@ -2574,28 +2591,31 @@ class EditQuote extends React.Component {
         style={{
           flexDirection: "row",
           justifyContent: "space-evenly",
-          width: "100%",
+          width: "90%",
           marginTop: 10,
           paddingTop: 10,
           paddingBottom: 10,
           alignSelf: "center",
         }}
       >
-        <Text style={{ textAlign: "center", width: "25%", fontSize: 14 }}>
+        <Text style={{ textAlign: "center",
+            justifyContent: "center",
+            alignItems: "center",  flex:1, fontSize: 14 }}>
           {item.user_name}
         </Text>
-        <Text style={{ textAlign: "center", width: "25%", fontSize: 14 }}>
+        <Text style={{ textAlign: "center",
+            justifyContent: "center",
+            alignItems: "center", flex:1, fontSize: 14 }}>
           {item.plan_name}
+          
         </Text>
         <TouchableOpacity
           disabled={this.state.disableAll || !item.isActive}
           onPress={() => this.onPressValueRadio(index, "pre")}
           style={{
-            width: "25%",
+            flex:1,
             flexDirection: "row",
-            marginStart: 10,
-            justifyContent: "flex-start",
-            alignItems: "flex-start",
+            justifyContent: "center",
           }}
         >
           <Image
@@ -2613,11 +2633,9 @@ class EditQuote extends React.Component {
         <TouchableOpacity
           onPress={() => this.onPressValueRadio(index, "non_pre")}
           style={{
-            width: "25%",
-            marginStart: 10,
+            flex:1,
             flexDirection: "row",
-            justifyContent: "flex-start",
-            alignItems: "flex-start",
+            justifyContent: "center",
           }}
         >
           <Image
