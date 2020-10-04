@@ -20,8 +20,8 @@ class LoginScreen extends React.Component {
       this.state = {
          // email: "dalbir@riskcare.ca",
          // password: "7895@Tranmere",
-         email: "aravindh@kitkattech.com",
-         password: "123@aravindh",
+      // email: "aravindh@kitkattech.com",
+      // password: "123@aravindh",
          // email: "",
          // password: ""
       };
@@ -301,7 +301,7 @@ const styles = StyleSheet.create({
       fontWeight: '600'
    },
    loginViews: {
-      marginTop: 80
+      marginTop: 40
    },
    signIn: {
       fontSize: 24,

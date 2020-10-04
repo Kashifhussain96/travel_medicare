@@ -209,12 +209,14 @@ class MyPolicy extends React.Component {
             return "Policy Change Pending"
         }else if (status == 7) {
             return "Matured"
+        }else if(status == 5){
+            return "Void"
         }
     }
 
 
     onPressDocument = (index, item) => {
-        ModalAlert.createOptionModal(this.renderDownloadButtons(item), false, { height: '55%' })
+        ModalAlert.createOptionModal(this.renderDownloadButtons(item), false, { height:"60%" })
     }
 
 

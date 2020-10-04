@@ -58,23 +58,24 @@ class cancelpolicy extends React.Component {
             midTermCancelDate: '',
             refundList: [],
             finDepartureDate: '',
+            refundSelectedList: '',
             finProof: null,
             finProofName: 'Choose File',
-
+            isCheck: false,
             nonFinEmail: '',
             nonFinCity: '',
             nonFinPostalCode: '',
             nonFinAddress: '',
             nonFinPhone: '',
-
+            showCancelDocs: false,
             isEditEmail: false,
             isEditCity: false,
             isEditPostalCode: false,
             isEditPhone: false,
             isEditAddress: false,
             nonFinRemarks: '',
-
-            voidList:[]
+            finInsuredDOB: '',
+            voidList: [],
         };
 
     }
@@ -143,7 +144,7 @@ class cancelpolicy extends React.Component {
             return false
         }
 
-        if (this.state.showVisa) {
+        if (this.state.showCancelDocs) {
             if (this.state.passportImage == null) {
                 ModalAlert.error("Please select Passport copy.");
                 return false
@@ -263,7 +264,7 @@ class cancelpolicy extends React.Component {
                 list[this.state.voidIndex].copyPassPortText = name
 
                 this.setState({
-                   voidList : list
+                    voidList: list
                 });
                 break;
 
@@ -281,7 +282,41 @@ class cancelpolicy extends React.Component {
                 list[this.state.voidIndex].visaDocName = name
 
                 this.setState({
-                   voidList : list
+                    voidList: list
+                });
+                break;
+
+            }
+            case 10: {
+                let name = ''
+                if (image.path) {
+                    name = image.path.slice(image.path.length - 16, image.path.length)
+                }
+
+                let list = [...this.state.refundList]
+                list[this.state.midIndex].copyPassPort = image
+                list[this.state.midIndex].copyPassPortText = name
+
+                this.setState({
+                    refundList: list
+                });
+                break;
+
+            }
+
+
+            case 11: {
+                let name = ''
+                if (image.path) {
+                    name = image.path.slice(image.path.length - 16, image.path.length)
+                }
+
+                let list = [...this.state.refundList]
+                list[this.state.midIndex].boardingPass = image
+                list[this.state.midIndex].boardingPassText = name
+
+                this.setState({
+                    refundList: list
                 });
                 break;
 
@@ -341,18 +376,53 @@ class cancelpolicy extends React.Component {
 
         switch (status) {
             case 1: {
-                this.setState({
-                    fromDate: false,
-                    cancelDate: date
-                })
+                var dd = new Date(data)
+                var ddw = new Date();
+                var time = ddw.getTime() - dd.getTime();
+
+                var days = time / (1000 * 3600 * 24);
+
+
+                if (Math.round(days) > 0) {
+                    this.setState({
+                        fromDate: false,
+                        cancelDate: date,
+                        showCancelDocs: true
+                    })
+                } else {
+                    this.setState({
+                        fromDate: false,
+                        cancelDate: date,
+                        showCancelDocs: false
+                    })
+                }
+
 
                 break;
             }
 
             case 2: {
+                var dd = new Date(data)
+                var ddw = new Date();
+                var time = ddw.getTime() - dd.getTime();
+
+                var days = time / (1000 * 3600 * 24);
+                let list = [...this.state.refundList];
+                let isCheck = false
+                for (let index = 0; index < list.length; index++) {
+                    if (Math.round(days) > 0) {
+                        list[index].isCheck = true
+                        isCheck = true
+                    } else {
+                        list[index].isCheck = false
+                        isCheck = false
+                    }
+                }
                 this.setState({
                     midTermDate: false,
-                    midTermCancelDate: date
+                    midTermCancelDate: date,
+                    refundList: list,
+                    isCheck: isCheck
                 })
 
                 break;
@@ -362,6 +432,15 @@ class cancelpolicy extends React.Component {
                 this.setState({
                     finDeparture: false,
                     finDepartureDate: date
+                })
+
+                break;
+            }
+
+            case 4: {
+                this.setState({
+                    finDob: false,
+                    finInsuredDOB: date
                 })
 
                 break;
@@ -394,10 +473,19 @@ class cancelpolicy extends React.Component {
         this.RBSheet.open();
     }
 
-    onPressCameraVoid=(status,index)=>{
+    onPressCameraVoid = (status, index) => {
         this.setState({
             imageStatus: status,
-            voidIndex:index
+            voidIndex: index
+        })
+
+        this.RBSheet.open();
+    }
+
+    onPressCameraMid = (status, index) => {
+        this.setState({
+            imageStatus: status,
+            midIndex: index
         })
 
         this.RBSheet.open();
@@ -413,22 +501,19 @@ class cancelpolicy extends React.Component {
             formData.append("policy_id", this.props.navigation.state.params.id);
             formData.append("cancel_date_endorsement", this.state.cancelDate);
             formData.append("cancel_remarks", this.state.remarks);
-            if (this.state.showVisa) {
-                formData.append("passport_copy ", {
+            if (this.state.showCancelDocs) {
+                formData.append("passport_copy", {
                     uri: this.state.passportImage.path,
                     type: this.state.passportImage.mime,
                     name: 'image',
 
                 })
-                formData.append("boarding_passes ", {
+                formData.append("boarding_passes", {
                     uri: this.state.boardingPass.path,
                     type: this.state.boardingPass.mime,
                     name: 'image',
 
                 })
-            } else {
-                // formData.append("passport_copy ", null)
-                // formData.append("boarding_passes ", null)  
             }
 
 
@@ -686,6 +771,18 @@ class cancelpolicy extends React.Component {
 
                 formData.append('refund_insured_name[]', element.insuredId);
                 formData.append('refund_remarks[]', element.remarks);
+                if (element.isCheck) {
+                    formData.append("refund_passport_copy[]", {
+                        uri: element.copyPassPort.path,
+                        type: element.copyPassPort.mime,
+                        name: 'Image ' + element.copyPassPortText,
+                    });
+                    formData.append("refund_boarding_pass[]", {
+                        uri: element.boardingPass.path,
+                        type: element.boardingPass.mime,
+                        name: 'Image ' + element.boardingPassText,
+                    });
+                }
 
             }
 
@@ -714,49 +811,49 @@ class cancelpolicy extends React.Component {
     }
 
     voidApi = () => {
-        if(this.validateVoidList()){
+        if (this.validateVoidList()) {
             let modal = ModalAlert.createProgressModal('Please wait...')
-                let formData = new FormData();
-                formData.append("user_id", this.props.userData.user_id);
-                formData.append("policy_id", this.props.navigation.state.params.id);
-                for (let index = 0; index < this.state.voidList.length; index++) {
-                    const element = this.state.voidList[index];
+            let formData = new FormData();
+            formData.append("user_id", this.props.userData.user_id);
+            formData.append("policy_id", this.props.navigation.state.params.id);
+            for (let index = 0; index < this.state.voidList.length; index++) {
+                const element = this.state.voidList[index];
 
-                    formData.append("insured[]", element.userName);
-                    formData.append("remark[]", element.remarks);
-                    formData.append("visa_type", 1);
-                    formData.append("copyofpassport[]", {
-                        uri: element.copyPassPort.path,
-                        type: element.copyPassPort.mime,
-                        name: 'Image ' + element.copyPassPortText,
-                    });
-                    formData.append("visadocument[]", {
-                        uri: element.visaDoc.path,
-                        type: element.visaDoc.mime,
-                        name: 'Image ' + element.visaDocName,
-                    });
+                formData.append("insured[]", element.userName);
+                formData.append("remark[]", element.remarks);
+                formData.append("visa_type", 1);
+                formData.append("copyofpassport[]", {
+                    uri: element.copyPassPort.path,
+                    type: element.copyPassPort.mime,
+                    name: 'Image ' + element.copyPassPortText,
+                });
+                formData.append("visadocument[]", {
+                    uri: element.visaDoc.path,
+                    type: element.visaDoc.mime,
+                    name: 'Image ' + element.visaDocName,
+                });
+            }
+
+            SSOServices.cancelVoid(formData).then(res => {
+                ModalAlert.hide(modal)
+                ModalAlert.createModal({ text: 'Alert' }, { text: res.message }, false,
+                    ModalAlert.createSecondaryButton('Ok', () => {
+                        this.props.navigation.goBack();
+                        const resetAction = StackActions.reset({
+                            index: 0,
+                            actions: [NavigationActions.navigate({ routeName: 'HomeInitial' })],
+                        });
+                        this.props.navigation.dispatch(resetAction);
+                        ModalAlert.hideAll()
+                    }))
+            }).catch(err => {
+                ModalAlert.hide(modal)
+                if (err) {
+                    ModalAlert.error(err.message)
+                } else {
+                    ModalAlert.error('Something went wrong.')
                 }
-
-                SSOServices.cancelVoid(formData).then(res => {
-                    ModalAlert.hide(modal)
-                    ModalAlert.createModal({ text: 'Alert' }, { text: res.message }, false,
-                        ModalAlert.createSecondaryButton('Ok', () => {
-                            this.props.navigation.goBack();
-                            const resetAction = StackActions.reset({
-                                index: 0,
-                                actions: [NavigationActions.navigate({ routeName: 'HomeInitial' })],
-                            });
-                            this.props.navigation.dispatch(resetAction);
-                            ModalAlert.hideAll()
-                        }))
-                }).catch(err => {
-                    ModalAlert.hide(modal)
-                    if (err) {
-                        ModalAlert.error(err.message)
-                    } else {
-                        ModalAlert.error('Something went wrong.')
-                    }
-                })
+            })
 
         }
     }
@@ -824,27 +921,33 @@ class cancelpolicy extends React.Component {
                     premiumAmount: '',
                     remarks: '',
                     isCheck: false,
-                    premiumAmountTemp: element.selected_key == 2 ? element.cost_with_pre_existing : element.cost_without_pre_existing
+                    premiumAmountTemp: element.selected_key == 2 ? element.cost_with_pre_existing : element.cost_without_pre_existing,
+                    copyPassPort: null,
+                    copyPassPortText: 'Choose File',
+                    boardingPass: null,
+                    boardingPassText: 'Choose File',
                 }
                 listRefund.push(obj)
 
                 let voidObj = {
-                    userName : '',
-                    copyPassPort:null,
-                    copyPassPortText:'Choose File',
-                    visaDoc : null,
-                    visaDocName : 'Choose File',
-                    remarks : ''
+                    userName: '',
+                    copyPassPort: null,
+                    copyPassPortText: 'Choose File',
+                    visaDoc: null,
+                    visaDocName: 'Choose File',
+                    remarks: ''
                 }
                 voidList.push(voidObj)
             }
+
+            console.log(listRefund)
 
             this.setState({
                 insuredList: list,
                 refundMidTermData: listRefund,
                 refundList: [listRefund[0]],
-                voidList : [voidList[0]],
-                voidListTemp : voidList
+                voidList: [voidList[0]],
+                voidListTemp: voidList
             })
         }).catch(err => {
 
@@ -863,9 +966,13 @@ class cancelpolicy extends React.Component {
     renderCancelOption = () => {
         switch (this.state.options) {
             case 'cancellation': {
+                var d = new Date();
+                d.setDate(d.getDate() - 1);
+                var d1 = new Date(d);
                 return (
                     <View>
-                        <Text style={{ fontSize: 20,marginStart:25,marginTop:20 }}>Type : <Text style={{ color: 'rgb(62, 185, 186)', fontWeight: '600' }}>Cancellation Backdated</Text></Text>
+                        <Text style={{ marginStart: 20, color: 'red', marginTop: 20 }}>*The minimum premium is $20 per policy.</Text>
+                        <Text style={{ fontSize: 20, marginStart: 25, marginTop: 20 }}>Type : <Text style={{ color: 'rgb(62, 185, 186)', fontWeight: '600' }}>{this.state.showCancelDocs ? "Cancellation Backdated" : "Cancellation"}</Text></Text>
 
                         <View style={[styles.singleitem, { justifyContent: 'flex-start' }]}>
                             <Text style={{ fontWeight: '700', marginStart: 20, fontSize: 15, color: 'black' }} > Cancellation Date : </Text>
@@ -881,6 +988,7 @@ class cancelpolicy extends React.Component {
                         <DatePicker
                             datePicked={(data) => this.handleDatePicked(data, 1)}
                             dateCanceled={() => this.setState({ fromDate: false })}
+                            minimumDate={d1}
                             showDate={this.state.fromDate} />
                         <View style={[styles.singleitem, { justifyContent: 'flex-start' }]}>
                             <Text style={{ fontWeight: '700', marginStart: 20, width: '50%', marginStart: 25, fontSize: 15, color: 'black' }}>Remarks *: </Text>
@@ -900,19 +1008,19 @@ class cancelpolicy extends React.Component {
 
                         </View>
                         {
-                            (this.state.showVisa) &&
+                            (this.state.showCancelDocs) &&
 
                             <View>
 
                                 <View style={styles.singleitem}>
-                                    <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', marginStart: 10, fontSize: 15, color: 'black' }} > Passport Copy *: </Text>
+                                    <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', marginStart: 24, fontSize: 15, color: 'black' }} > Passport Copy *: </Text>
                                     <TouchableOpacity onPress={() => this.onPressCamera(2)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
                                         <Text style={{ paddingTop: 10, paddingStart: 10, paddingBottom: 10 }} >{this.state.passportImageText}</Text>
                                     </TouchableOpacity>
                                 </View>
 
                                 <View style={styles.singleitem}>
-                                    <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', fontSize: 15, color: 'black' }} > Boarding Passes Copy *: </Text>
+                                    <Text style={{ fontWeight: '700', marginStart: 24, width: '50%', fontSize: 15, color: 'black' }} > Boarding Passes Copy *: </Text>
                                     <TouchableOpacity onPress={() => this.onPressCamera(3)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
                                         <Text style={{ paddingTop: 10, paddingStart: 10, paddingBottom: 10 }} >{this.state.boardingPassText}</Text>
                                     </TouchableOpacity>
@@ -934,9 +1042,21 @@ class cancelpolicy extends React.Component {
         }
     }
 
-    selectUserVoid = (value, item, index) => {
+    selectUserVoid = (value, item, i) => {
         let list = [...this.state.voidList]
-        list[index].userName = value
+
+
+        for (let index = 0; index < list.length; index++) {
+            const element = list[index];
+            if (element.userName == value) {
+                ModalAlert.error("Insured Person already selected.")
+                return
+            }
+        }
+
+        list[i].userName = value
+
+
         this.setState({
             voidList: list
         })
@@ -951,22 +1071,22 @@ class cancelpolicy extends React.Component {
                 <DropDownView
                     styles={{ alignSelf: 'flex-start', marginStart: 10, marginTop: 20 }}
                     childData={this.state.insuredList}
-                    value={item.name}
-                    onItemSelected={(value) => this.selectUserVoid(value,item,index)}
+                    value={item.userName}
+                    onItemSelected={(value) => this.selectUserVoid(value, item, index)}
                     dropDownTitle={"Select User:"} />
 
                 <View>
 
                     <View style={[styles.singleitem, { justifyContent: 'space-evenly' }]}>
                         <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', marginStart: 10, fontSize: 15, color: 'black' }} >Copy of Passport*: </Text>
-                        <TouchableOpacity onPress={() => this.onPressCameraVoid(8,index)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
+                        <TouchableOpacity onPress={() => this.onPressCameraVoid(8, index)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
                             <Text style={{ paddingTop: 10, paddingStart: 10, paddingBottom: 10 }} >{item.copyPassPortText}</Text>
                         </TouchableOpacity>
                     </View>
 
                     <View style={[styles.singleitem, { justifyContent: 'space-evenly' }]}>
                         <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', fontSize: 15, color: 'black' }}>Visa Rejection Document*: </Text>
-                        <TouchableOpacity onPress={() => this.onPressCameraVoid(9,index)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
+                        <TouchableOpacity onPress={() => this.onPressCameraVoid(9, index)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
                             <Text style={{ paddingTop: 10, paddingStart: 10, paddingBottom: 10 }} >{item.visaDocName}</Text>
                         </TouchableOpacity>
                     </View>
@@ -988,7 +1108,7 @@ class cancelpolicy extends React.Component {
                                 let list = [...this.state.voidList]
                                 list[index].remarks = text
                                 this.setState({
-                                    voidList:list
+                                    voidList: list
                                 })
                             }}
                             isShowDrawable={false}
@@ -1001,7 +1121,7 @@ class cancelpolicy extends React.Component {
     }
 
 
-    onPressAddVoid = ()=>{
+    onPressAddVoid = () => {
         if (this.validateVoidList()) {
             let list = [...this.state.voidList]
 
@@ -1018,33 +1138,33 @@ class cancelpolicy extends React.Component {
         }
     }
 
-    validateVoidList = ()=>{
+    validateVoidList = () => {
         for (let index = 0; index < this.state.voidList.length; index++) {
             const element = this.state.voidList[index];
 
             console.log(this.state.voidList)
 
-            if(element.userName == ''){
+            if (element.userName == '') {
                 ModalAlert.error('Please select the user')
                 return false
             }
 
 
-            if(element.copyPassPort == null){
+            if (element.copyPassPort == null) {
                 ModalAlert.error('Please upload the Passport copy')
                 return false
             }
 
-            if(element.visaDoc == null){
+            if (element.visaDoc == null) {
                 ModalAlert.error('Please upload the Visa Rejection Document')
                 return false
             }
 
-            if(element.remarks == ''){
+            if (element.remarks == '') {
                 ModalAlert.error('Please enter Remarks')
                 return false
             }
-            
+
         }
 
         return true;
@@ -1056,7 +1176,7 @@ class cancelpolicy extends React.Component {
 
                 <View style={{ flexDirection: 'row', marginTop: 30, justifyContent: 'space-between', width: '90%', alignSelf: 'center' }}>
                     <Text style={{ fontSize: 20 }}>Type : <Text style={{ color: 'rgb(62, 185, 186)', fontWeight: '600' }}>SVVTC</Text></Text>
-                    <TouchableOpacity onPress={()=>this.onPressAddVoid()} style={{ backgroundColor: 'rgb(62, 185, 186)', paddingStart: 20, paddingEnd: 20, paddingTop: 10, paddingBottom: 10, borderRadius: 10 }}>
+                    <TouchableOpacity onPress={() => this.onPressAddVoid()} style={{ backgroundColor: 'rgb(62, 185, 186)', paddingStart: 20, paddingEnd: 20, paddingTop: 10, paddingBottom: 10, borderRadius: 10 }}>
                         <Text style={{ color: 'white', fontWeight: '600' }}>Add New</Text>
                     </TouchableOpacity>
                 </View>
@@ -1067,13 +1187,32 @@ class cancelpolicy extends React.Component {
         )
     }
 
-    selectUser = (value, item, index) => {
-        let list = [...this.state.refundList]
-        list[index].insuredName = value
-        list[index].premiumAmount = list[index].premiumAmountTemp
-        this.setState({
-            refundList: list
-        })
+    selectUser = (value, item, i) => {
+        let list = [...this.state.refundMidTermData]
+
+        for (let index = 0; index < list.length; index++) {
+            const element = list[index];
+            if (value == element.insuredId) {
+                let list2 = [...this.state.refundList]
+
+
+                if (this.state.refundSelectedList.includes(value)) {
+                    ModalAlert.error("Insured Person already selected.")
+                    return
+                }
+
+
+                list2[i].insuredName = value
+                list2[i].premiumAmount = list[index].premiumAmountTemp
+                this.setState({
+                    refundList: list2,
+                    refundSelectedList: this.state.refundSelectedList + value + ","
+                })
+
+            }
+
+        }
+
 
     }
 
@@ -1092,6 +1231,27 @@ class cancelpolicy extends React.Component {
                         dropDownTitle={"Select User:"} />
                     <Text style={{ fontWeight: '600', marginTop: 20, fontSize: 20, marginEnd: 20 }}>Premium Amount{"\n"}$ {item.premiumAmount}</Text>
                 </View>
+
+                {
+                    item.isCheck &&
+
+                    <View>
+
+                        <View style={styles.singleitem}>
+                            <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', marginStart: 24, fontSize: 15, color: 'black' }} > Passport Copy *: </Text>
+                            <TouchableOpacity onPress={() => this.onPressCameraMid(10, index)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
+                                <Text style={{ paddingTop: 10, paddingStart: 10, paddingBottom: 10 }} >{item.copyPassPortText}</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.singleitem}>
+                            <Text style={{ fontWeight: '700', marginStart: 24, width: '50%', fontSize: 15, color: 'black' }} > Boarding Passes Copy *: </Text>
+                            <TouchableOpacity onPress={() => this.onPressCameraMid(11, index)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
+                                <Text style={{ paddingTop: 10, paddingStart: 10, paddingBottom: 10 }} >{item.boardingPassText}</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                    </View>}
 
                 <View style={[styles.singleitem, { justifyContent: 'flex-start' }]}>
                     <Text style={{ fontWeight: '700', marginStart: 20, width: '50%', marginStart: 25, fontSize: 15, color: 'black' }}>Remarks *: </Text>
@@ -1129,12 +1289,25 @@ class cancelpolicy extends React.Component {
         if (this.validateRefund()) {
             let list = [...this.state.refundList]
 
-            if (list.length == this.state.insuredList.length) {
+            if (list.length == this.state.refundMidTermData.length) {
                 ModalAlert.error("All Insured list were added.")
                 return
             }
 
-            list.push(this.state.insuredList[list.length])
+            for (let index = 0; index < list.length; index++) {
+                if (this.state.isCheck) {
+                    list[index].isCheck = true
+                    this.state.refundMidTermData[list.length].isCheck = true
+
+                } else {
+                    list[index].isCheck = false
+                    this.state.refundMidTermData[list.length].isCheck = false
+
+                }
+
+            }
+
+            list.push(this.state.refundMidTermData[list.length])
 
             this.setState({
                 refundList: list
@@ -1173,18 +1346,22 @@ class cancelpolicy extends React.Component {
     }
 
     renderMidterm = () => {
+        var d = new Date();
+        d.setDate(d.getDate() - 1);
+        var d1 = new Date(d);
         return (
             <View>
                 <Text style={{ marginStart: 20, color: 'red', marginTop: 20 }}>*The minimum premium is $20 per policy.</Text>
 
                 <View style={{ flexDirection: 'row', marginTop: 30, justifyContent: 'space-between', width: '90%', alignSelf: 'center' }}>
-                    <Text style={{ fontSize: 20 }}>Type : <Text style={{ color: 'rgb(62, 185, 186)', fontWeight: '600' }}>Cancellation</Text></Text>
-                    <TouchableOpacity onPress={() => {
-                        this.onPressRefundNew()
-                    }} style={{ backgroundColor: 'rgb(62, 185, 186)', paddingStart: 20, paddingEnd: 20, paddingTop: 10, paddingBottom: 10, borderRadius: 10 }}>
-                        <Text style={{ color: 'white', fontWeight: '600' }}>Add New</Text>
-                    </TouchableOpacity>
+                    <Text style={{ fontSize: 20 }}>Type : <Text style={{ color: 'rgb(62, 185, 186)', marginEnd: 10, fontWeight: '600' }}>{this.state.isCheck ? "Cancellation Backdated" : "Cancellation"}</Text></Text>
+
                 </View>
+                <TouchableOpacity onPress={() => {
+                    this.onPressRefundNew()
+                }} style={{ backgroundColor: 'rgb(62, 185, 186)', paddingStart: 20, paddingEnd: 20, paddingTop: 10, paddingBottom: 10,width:100, borderRadius: 10,marginTop:20,marginStart:20 }}>
+                    <Text style={{ color: 'white', fontWeight: '600' }}>Add New</Text>
+                </TouchableOpacity>
                 <View style={[styles.singleitem, { justifyContent: 'flex-start' }]}>
                     <Text style={{ fontWeight: '700', marginStart: 20, fontSize: 15, color: 'black' }} > Cancellation Date : </Text>
                     <CalenderView
@@ -1196,17 +1373,14 @@ class cancelpolicy extends React.Component {
                     <DatePicker
                         datePicked={(data) => this.handleDatePicked(data, 2)}
                         dateCanceled={() => this.setState({ midTermDate: false })}
+                        minimumDate={d1}
                         showDate={this.state.midTermDate} />
 
                 </View>
 
-
                 <FlatList
                     renderItem={this.renderRefundMidTerm}
                     data={this.state.refundList} />
-
-
-
 
             </View>
         )
@@ -1233,6 +1407,7 @@ class cancelpolicy extends React.Component {
     renderCorrections = () => {
         return (
             <View>
+                <Text style={{ marginStart: 20, color: 'red', marginTop: 20 }}>*The minimum premium is $20 per policy.</Text>
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
                     <DropDownView
                         styles={{ alignSelf: 'flex-start', marginStart: 10, marginTop: 20 }}
@@ -1245,7 +1420,7 @@ class cancelpolicy extends React.Component {
                         dropDownTitle={"Type of corrections:"} />
 
 
-                    <Text style={{ fontSize: 20, marginTop: 20, marginEnd: 20 }}>Type : <Text style={{ color: 'rgb(62, 185, 186)', fontWeight: '600' }}>Policy Change</Text></Text>
+                    <Text style={{ fontSize: 20, marginTop: 20, marginEnd: 20 }}>Type : <Text style={{ color: 'rgb(62, 185, 186)', fontWeight: '600', marginEnd: 20 }}>{this.state.financial === "fin" ? 'Policy Change' : 'Correction'}</Text></Text>
 
                 </View>
 
@@ -1386,15 +1561,25 @@ class cancelpolicy extends React.Component {
                                         onChangeText={(text) => this.setState({ correctionName: text })}
                                         isShowDrawable={false}
                                     />
-                                    <TextInputComponent
-                                        isSecure={false}
-                                        placeholder={"DOB"}
-                                        disable={true}
-                                        maxLength={30}
-                                        value={this.state.finInsuredDOB}
-                                        onChangeText={(text) => this.setState({ finInsuredDOB: text })}
-                                        isShowDrawable={false}
-                                    />
+                                    <View style={[styles.singleitem, { justifyContent: 'flex-start', alignSelf: 'center' }]}>
+                                        <CalenderView
+                                            showCalender={true}
+                                            style={{ width: '90%', marginTop: -10, }}
+                                            onPress={() => {
+                                                if (this.state.financialInsuredName) {
+                                                    this.setState({
+                                                        finDob: true
+                                                    })
+                                                }
+                                            }}
+                                            title={this.state.finInsuredDOB} />
+
+                                        <DatePicker
+                                            datePicked={(data) => this.handleDatePicked(data, 4)}
+                                            dateCanceled={() => this.setState({ finDob: false })}
+                                            showDate={this.state.finDob} />
+
+                                    </View>
 
                                     <View style={styles.singleitem}>
                                         <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', marginStart: 10, fontSize: 15, color: 'black' }} >Proof:</Text>
@@ -1417,6 +1602,7 @@ class cancelpolicy extends React.Component {
                                     <DatePicker
                                         datePicked={(data) => this.handleDatePicked(data, 3)}
                                         dateCanceled={() => this.setState({ finDeparture: false })}
+                                        minimumDate={new Date()}
                                         showDate={this.state.finDeparture} />
 
                                 </View>

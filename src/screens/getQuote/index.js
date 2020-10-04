@@ -119,7 +119,7 @@ class GetQuote extends React.Component {
   async componentDidMount() {
     await this.getPlan();
     await this.getPolicyLimit();
-
+    await this.getDeductible();
 
     if (this.props.navigation.state.params.id) {
       if (this.props.navigation.state.params.isCopy) {
@@ -533,7 +533,7 @@ class GetQuote extends React.Component {
         this.state.benefiaryData[index].dob[index]
       );
     }
-    formData.append("plan_id", this.state.planType);
+    formData.append("plan_id", this.state.planType ? this.state.planType : 1);
 
     SSOServices.getDeductible(formData)
       .then((res) => {
@@ -546,6 +546,7 @@ class GetQuote extends React.Component {
         }
         this.setState({
           deductibleData: data,
+          deductible : res.data[0].deductible_id
         });
         if (this.props.navigation.state.params.id) {
           this.setState({
@@ -661,12 +662,12 @@ class GetQuote extends React.Component {
         }
       }
 
-      formData.append("duration", this.state.duration);
+      formData.append("duration", parseInt(this.state.duration));
       formData.append("plan_id", this.state.planType);
       formData.append("coverage", this.state.policyLimit);
       formData.append("deductible_id", this.state.deductible);
-      formData.append("family_coverage", this.state.familyCoverage ? 0 : 1);
-      formData.append("super_visa", this.state.superVisa ? 0 : 1);
+      formData.append("family_coverage", this.state.familyCoverage ? 1 : 0);
+      formData.append("super_visa", this.state.superVisa ? 1 : 0);
       formData.append("payment_frequency", this.state.paymentFrequency);
       formData.append("country_id", 1);
       formData.append("extend", 0);
