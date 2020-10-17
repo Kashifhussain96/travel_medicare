@@ -303,3 +303,21 @@ export async function cancelCorrectionNonFin(data) {
   });
 }
 
+
+
+export async function getPolicyTransaction(id) {
+  return request({
+    url: `getPolicyTransactions/`+id,
+    method: "GET",
+  });
+}
+
+
+export async function getPolicyPamentTransaction(data) {
+  return requestMultiPart({
+    url: `getPolicyPaymentTransactions`,
+    method: "POST",
+    data : data
+  });
+}
+

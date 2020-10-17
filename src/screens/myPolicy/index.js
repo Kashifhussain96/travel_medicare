@@ -192,8 +192,16 @@ class MyPolicy extends React.Component {
             case 2:
                 this.emailPolicy(item.quotation_id)
                 break;
+            case 4:
+                this.reissueData(item.quotation_id)
+                break;
 
         }
+    }
+
+    reissueData = (id) =>{
+        this.props.navigation.navigate('GetQuote', { id: id,isCopy:true,isReissue : true })
+
     }
 
     getStatus = (status) => {
@@ -255,10 +263,14 @@ class MyPolicy extends React.Component {
         let arr = [
             { label: "View", value: "1" },
             { label: "Email Policy", value: "2" },
-            { label: "Endorsement", value: "3" }
+            { label: "Endorsement", value: "3" },
+            { label: "Re-Issue", value: "4" }
         ]
 
-        item.status != 1 && arr.pop() 
+        if(item.status != 1) {
+            arr.pop() 
+            arr.pop() 
+        } 
 
         return (
             <View style={[styles.itemView]}>
@@ -306,6 +318,8 @@ class MyPolicy extends React.Component {
                                 this.onPressAction(item, 2)
                             }else if(value == "3"){
                                 this.onPressAction(item, 0)
+                            }else if(value == "4"){
+                                this.onPressAction(item, 4)
                             }
                         }}
                         value={''}

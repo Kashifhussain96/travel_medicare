@@ -51,6 +51,7 @@ class GetQuote extends React.Component {
     this.state = {
       disableAll: false,
       quotedList: [],
+      isReissue:false,
       benefiaryData: [
         {
           name: "",
@@ -132,11 +133,28 @@ class GetQuote extends React.Component {
   }
 
   copyQuote = (id) => {
-    let modal = ModalAlert.createProgressModal("Copying Data...", false);
+    let modal = ModalAlert.createProgressModal("Please wait...", false);
     SSOServices.getQuoteById(this.props.navigation.state.params.id)
       .then((res) => {
+        if(this.props.navigation.state.params.isReissue){
+          this.calculateBeneficiaryData(res,true);
+          this.setState({
+            policyName: res.data.getquoteData.policy_holder_name,
+            policyDob: res.data.getquoteData.policy_holder_dob,
+            policyEmail: res.data.getquoteData.policy_holder_email,
+            policyCity: res.data.getquoteData.policy_holder_city,
+            policyPostalCode: res.data.getquoteData.policy_holder_postal_code,
+            policyAddress: res.data.getquoteData.policy_holder_address,
+            policyNumber: res.data.getquoteData.policy_holder_phone,
+            policyBeneficiary: res.data.getquoteData.policy_holder_beneficiary,
+            isReissue : true
+      
+          })
+        }else{
+          this.calculateBeneficiaryData(res,false);
 
-        this.calculateBeneficiaryData(res);
+        }
+
 
         ModalAlert.hide(modal)
 
@@ -248,7 +266,7 @@ class GetQuote extends React.Component {
 
           this.calculateWaitingPeriod(res.data.getquoteData.arrival_date, false);
 
-          this.calculateBeneficiaryData(res);
+          this.calculateBeneficiaryData(res,false);
 
           this.selectPlanId(res.data.getquoteData.plan_id);
 
@@ -261,7 +279,7 @@ class GetQuote extends React.Component {
     }
   };
 
-  calculateBeneficiaryData = (res) => {
+  calculateBeneficiaryData = (res,status) => {
     let list = [];
     try {
 
@@ -274,6 +292,7 @@ class GetQuote extends React.Component {
 
         let obj = {
           isChecked: false,
+          status:status,
           id: res.data.insured_data[index].id,
           name: res.data.insured_data[index].insured_name,
           gender: res.data.insured_data[index].insured_gender,
@@ -314,6 +333,7 @@ class GetQuote extends React.Component {
         let obj = {
           isChecked: false,
           id: res.data.insured_data[index].id,
+          status:status,
           name: res.data.insured_data[index].insured_name,
           gender: res.data.insured_data[index].insured_gender,
           dob: res.data.insured_data[index].insured_DOB,
@@ -1290,7 +1310,7 @@ class GetQuote extends React.Component {
               styles={{ marginStart: 10, marginTop: 8, height: 45 }}
               placeholder={""}
               maxLength={100}
-              disable={this.state.disableAll}
+              disable={this.state.disableAll || item.status}
               value={item.name}
               onChangeText={(text) => this.onChangeTextList(text, index, 1)}
               isShowDrawable={false}
@@ -1331,7 +1351,7 @@ class GetQuote extends React.Component {
               { label: "Female", value: "female" },
             ]}
             value={item.gender.toLowerCase()}
-            disabled={this.state.disableAll}
+            disabled={this.state.disableAll || item.status}
             onItemSelected={(value) =>
               this.onItemSelectedGenderList(value, index)
             }
@@ -1365,7 +1385,7 @@ class GetQuote extends React.Component {
               isSecure={false}
               styles={{ marginStart: 10, marginTop: 8, height: 45 }}
               placeholder={""}
-              disable={this.state.disableAll}
+              disable={this.state.disableAll || item.status}
               maxLength={100}
               value={item.bName}
               onChangeText={(text) => this.onChangeTextList(text, index, 2)}
@@ -1382,7 +1402,7 @@ class GetQuote extends React.Component {
               isSecure={false}
               styles={{ marginStart: 10, marginTop: 8, height: 45 }}
               placeholder={""}
-              disable={this.state.disableAll}
+              disable={this.state.disableAll || item.status}
               value={item.bRelation}
               maxLength={100}
               onChangeText={(text) => this.onChangeTextList(text, index, 3)}
@@ -1516,18 +1536,35 @@ class GetQuote extends React.Component {
 
       let duration = date3.diff(date2, "days") + 1;
 
-      if (parseInt(duration) > 365) {
-        ModalAlert.alert("Duration should be 365 days.")
-      } else {
-        this.setState({
-          duration: duration.toString(),
-          durationInt: duration,
-          lastDate: date,
-          showPicker: false,
-          showPolicyHolderData: false
-
-        });
+      if(this.state.isReissue){
+        if (parseInt(duration) > 180) {
+          ModalAlert.alert("Duration should be 180 days for Reissue.")
+        }else{
+          this.setState({
+            duration: duration.toString(),
+            durationInt: duration,
+            lastDate: date,
+            showPicker: false,
+            showPolicyHolderData: false
+  
+          });
+        }
+      }else{
+        if (parseInt(duration) > 365) {
+          ModalAlert.alert("Duration should be 365 days.")
+        } else {
+          this.setState({
+            duration: duration.toString(),
+            durationInt: duration,
+            lastDate: date,
+            showPicker: false,
+            showPolicyHolderData: false
+  
+          });
+        }
       }
+
+    
     }
   };
 
@@ -1591,13 +1628,34 @@ class GetQuote extends React.Component {
     let date = getDateStringFromDate(data);
 
     switch (this.state.pickerStatus) {
-      case 1:
-        this.setState({
-          fromDate: date,
-          showPicker: false,
-          showPolicyHolderData: false
-        });
+      case 1:{
+
+
+        if(this.state.isReissue){
+          var d1 = new Date();
+          let date2 = moment(d1);
+          let date3 = moment(date);
+    
+          let duration = date3.diff(date2, "days");
+          if(duration < 0){
+            ModalAlert.alert("Previous dates are not allowed")
+          }else{
+            this.setState({
+              fromDate: date,
+              showPicker: false,
+              showPolicyHolderData: false
+            });
+          }
+        }else{
+          this.setState({
+            fromDate: date,
+            showPicker: false,
+            showPolicyHolderData: false
+          });
+        }
         break;
+      }
+        
       case 2:
         this.calculateDuration(date);
         break;
@@ -1803,27 +1861,64 @@ class GetQuote extends React.Component {
 
   calculateFirstAndLastDate = () => {
     if (this.state.duration) {
-      var someDate = new Date();
-      var fromDate = moment().format("YYYY-MM-DD");
-      var numberOfDaysToAdd = parseInt(this.state.duration);
-      someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
 
-      var dd = someDate.getDate();
-      var mm = someDate.getMonth() + 1;
-      var y = someDate.getFullYear();
+      if(this.state.isReissue){
+        var someDate = new Date();
+        var fromDate = moment().format("YYYY-MM-DD");
+        var numberOfDaysToAdd = parseInt(this.state.duration);
+        someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
 
-      var someFormattedDate =
-        y +
-        "-" +
-        (mm.toString().length == 1 ? "0" + mm : mm) +
-        "-" +
-        (dd.toString().length == 1 ? "0" + dd : dd);
+        if(numberOfDaysToAdd > 180){
+          ModalAlert.alert("Duration should be 180 days for Reissue.")
+        }else{
+          var someDate = new Date();
+          var fromDate = moment().format("YYYY-MM-DD");
+          var numberOfDaysToAdd = parseInt(this.state.duration);
+          someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
+    
+          var dd = someDate.getDate();
+          var mm = someDate.getMonth() + 1;
+          var y = someDate.getFullYear();
+    
+          var someFormattedDate =
+            y +
+            "-" +
+            (mm.toString().length == 1 ? "0" + mm : mm) +
+            "-" +
+            (dd.toString().length == 1 ? "0" + dd : dd);
+    
+          this.setState({
+            fromDate,
+            lastDate: someFormattedDate,
+            showPolicyHolderData: false
+          });
+        }
 
-      this.setState({
-        fromDate,
-        lastDate: someFormattedDate,
-        showPolicyHolderData: false
-      });
+      }else{
+        var someDate = new Date();
+        var fromDate = moment().format("YYYY-MM-DD");
+        var numberOfDaysToAdd = parseInt(this.state.duration);
+        someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
+  
+        var dd = someDate.getDate();
+        var mm = someDate.getMonth() + 1;
+        var y = someDate.getFullYear();
+  
+        var someFormattedDate =
+          y +
+          "-" +
+          (mm.toString().length == 1 ? "0" + mm : mm) +
+          "-" +
+          (dd.toString().length == 1 ? "0" + dd : dd);
+  
+        this.setState({
+          fromDate,
+          lastDate: someFormattedDate,
+          showPolicyHolderData: false
+        });
+      }
+
+     
     }
   };
 
@@ -2368,7 +2463,7 @@ class GetQuote extends React.Component {
                       styles={{ marginStart: 10, marginTop: 8, height: 45 }}
                       placeholder={""}
                       maxLength={100}
-                      disable={this.state.disableAll}
+                      disable={this.state.disableAll || this.state.isReissue}
                       value={this.state.policyName}
                       onChangeText={(text) => this.setState({ policyCity: text })}
                       isShowDrawable={false}
@@ -2383,7 +2478,7 @@ class GetQuote extends React.Component {
                       }}
                       childData={this.state.policyHolderName}
                       value={this.state.policyName}
-                      disabled={this.state.disableAll}
+                      disabled={this.state.disableAll || this.state.isReissue}
                       onItemSelected={(value) => {
                         this.setState({ policyName: value })
                         console.log(value)
@@ -2442,7 +2537,7 @@ class GetQuote extends React.Component {
                   isSecure={false}
                   styles={{ marginStart: 10, marginTop: 8, height: 45 }}
                   placeholder={""}
-                  disable={this.state.disableAll}
+                  disable={this.state.disableAll || this.state.isReissue}
                   maxLength={100}
                   value={this.state.policyEmail}
                   onChangeText={(text) => this.setState({ policyEmail: text })}
@@ -2473,7 +2568,7 @@ class GetQuote extends React.Component {
                     styles={{ marginStart: 10, marginTop: 8, height: 45 }}
                     placeholder={""}
                     maxLength={100}
-                    disable={this.state.disableAll}
+                    disable={this.state.disableAll || this.state.isReissue}
                     value={this.state.policyCity}
                     onChangeText={(text) => this.setState({ policyCity: text })}
                     isShowDrawable={false}
@@ -2495,7 +2590,7 @@ class GetQuote extends React.Component {
                     styles={{ marginStart: 10, marginTop: 8, height: 45 }}
                     placeholder={""}
                     maxLength={100}
-                    disable={this.state.disableAll}
+                    disable={this.state.disableAll || this.state.isReissue}
                     value={this.state.policyPostalCode}
                     onChangeText={(text) =>
                       this.setState({ policyPostalCode: text })
@@ -2519,7 +2614,7 @@ class GetQuote extends React.Component {
                   isSecure={false}
                   styles={{ marginStart: 10, marginTop: 8, height: 45 }}
                   placeholder={""}
-                  disable={this.state.disableAll}
+                  disable={this.state.disableAll || this.state.isReissue}
                   maxLength={100}
                   value={this.state.policyNumber}
                   onChangeText={(text) => this.setState({ policyNumber: text })}
@@ -2541,7 +2636,7 @@ class GetQuote extends React.Component {
                   isSecure={false}
                   styles={{ marginStart: 10, marginTop: 8, height: 45 }}
                   placeholder={""}
-                  disable={this.state.disableAll}
+                  disable={this.state.disableAll || this.state.isReissue}
                   maxLength={100}
                   value={this.state.policyAddress}
                   onChangeText={(text) =>

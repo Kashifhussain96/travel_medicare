@@ -11,12 +11,12 @@ import { createStackNavigator } from 'react-navigation-stack';
 import ScreenName from '../../navigation/screenNames'
 import colors from '../../utils/colors';
 
-
 class PolicyDetails extends React.Component {
    constructor(props) {
       super(props);
       this.state = {
          instText: "",
+         tab: "Summary",
          policydata: {
             policyadmin: {
                first_name: '',
@@ -37,6 +37,31 @@ class PolicyDetails extends React.Component {
 
    async componentDidMount() {
       this.getData()
+      this.getPolicyTransaction()
+      //this.getPolicyPamentTransaction()
+   }
+
+   getPolicyTransaction = () => {
+      let id = this.props.navigation.state.params.id
+      SSOServices.getPolicyTransaction(id).then(res => {
+
+      }).catch(err => {
+
+      })
+   }
+
+   getPolicyPamentTransaction = () => {
+      let formData = new FormData();
+
+      let id = this.props.navigation.state.params.id
+
+      formData.append("user_id", this.props.userData.user_id + "");
+      formData.append("policy_id", id + "");
+      SSOServices.getPolicyPamentTransaction(formData).then(res => {
+
+      }).catch(err => {
+
+      })
    }
 
    getData = () => {
@@ -166,7 +191,7 @@ class PolicyDetails extends React.Component {
       )
    }
 
-   listOfInstallment = ({item,index}) => {
+   listOfInstallment = ({ item, index }) => {
       return (
          <View>
 
@@ -183,7 +208,7 @@ class PolicyDetails extends React.Component {
                   <Text style={[styles.insuranceTitle, { fontWeight: 'normal' }]}>Status:</Text>
                   <Text style={[styles.insuranceTitle, { fontWeight: 'normal' }]}>{item.payment_status == 1 ? "Success" : "Pending"}</Text>
                </View>
-               
+
             </View>
          </View>
       )
@@ -205,67 +230,81 @@ class PolicyDetails extends React.Component {
    premiumReceiptAmount = () => {
       return (
          <View>
-      <Text style={[styles.insuranceTitle, { fontWeight: 'normal',width:'100%',fontSize:14,marginStart:15 ,marginTop:10}]}>Receipt <Text style={styles.insuranceTitle}>CAD {this.state.instText != '' ? `CAD `+this.state.policydata.poilcy_details.advance_amount : this.state.policydata.poilcy_details.quote_amount}</Text> for Policy of <Text style={styles.insuranceTitle}>Mr/ Mrs {this.state.policydata.poilcy_details.policy_holder_name}</Text> {` `}against the above Policy No. <Text style={styles.insuranceTitle}>{this.state.policydata.poilcy_details.policy_no}</Text></Text>
-         <View style={{width:'95%',marginTop:20,alignSelf:'center',height:1,backgroundColor:colors.primary}}/>
+            <Text style={[styles.insuranceTitle, { fontWeight: 'normal', width: '100%', fontSize: 14, marginStart: 15, marginTop: 10 }]}>Receipt <Text style={styles.insuranceTitle}>CAD {this.state.instText != '' ? `CAD ` + this.state.policydata.poilcy_details.advance_amount : this.state.policydata.poilcy_details.quote_amount}</Text> for Policy of <Text style={styles.insuranceTitle}>Mr/ Mrs {this.state.policydata.poilcy_details.policy_holder_name}</Text> {` `}against the above Policy No. <Text style={styles.insuranceTitle}>{this.state.policydata.poilcy_details.policy_no}</Text></Text>
+            <View style={{ width: '95%', marginTop: 20, alignSelf: 'center', height: 1, backgroundColor: colors.primary }} />
          </View>
       )
    }
    contactDetails = () => {
       return (
-         <View style={{marginStart:10,marginTop:20}}>
+         <View style={{ marginStart: 10, marginTop: 20 }}>
             <Text>If you notice any errors or need detailed information please contact the office</Text>
-            <Text style={{marginTop:10,fontWeight:'600',fontSize:16}}>Ontario</Text>
-            <Text style={{fontWeight:'600',fontSize:16,marginEnd:10}}>7895, Tranmere Drive, Mississauga, ON L5S1V9</Text>
-            <Text style={{fontWeight:'600',fontSize:16}}>905-672-9172</Text>
-            <Text style={{fontWeight:'600',fontSize:16}}>Fax- 905-673-1110</Text>
-            <Text style={{fontWeight:'600',fontSize:16}}>email - info@travelmedicare.com</Text>
-            <Text style={{fontWeight:'600',fontSize:16,marginTop:20}}>In the event of an emergency or if you require medical treatment you must contact the Assistance Company immediately at:</Text>
-            <Text style={{fontSize:16,marginTop:10,textAlign:'center'}}>1-844-879-8379</Text>
-            <Text style={{fontSize:16,textAlign:'center'}}>Toll-free from Canada and the USA</Text>
-            <Text style={{fontSize:16,textAlign:'center'}}>+1-416-285-1722</Text>
-            <Text style={{fontSize:16,textAlign:'center'}}>Collect where available</Text>
-            <Text style={{fontSize:16,textAlign:'center'}}>Email: assist@ardentassistance.com</Text>
-            <Text style={{marginTop:10,fontWeight:'600',fontSize:16}}>Waiting Period-If you purchase this coverage after your departure from your country of origin coverage for any injury that occurred is limited to 50% of eligible expenses, during:</Text>
-            <Text style={{marginTop:10}}>a) the 48-hour period following the effective date of the policy if insurance is purchased within 30 days after your departure from your country of origin) the 8-day period following the effective date of the policy if insurance is purchased more than 30 days after your departure from your country of origin even if related expenses are incurred after the Waiting Period</Text>
-            <Text style={{fontSize:18,fontWeight:'500',marginTop:10}}>Policy Conditions -</Text>
-            <Text style={{fontSize:16}}>Travel insurance is designed to cover loss arising from sudden and unforeseeable circumstances.It is important that you read and understand your policy as your coverage may be subject to certain limitations or exclusions.{"\n\n"}Your policy may not cover medical conditions and/or symptoms that exist prior to your trip.Check to see how this applies in your policy and how it relates to your effective date. In the event of an accident,injury or sickness,your prior medical history will be reviewed when a claim is reported.{"\n\n"}Costs incurred in your country of origin are notcovered.{"\n\n"}Your policy provides travel assistance;you are required to notify the Assistance Company prior to medical treatment.Your policy may limit benefits should you not contact the Assistance Company before seeking medical treatment.{"\n\n"}Please take the time to read this policy to ensure that it meets your needs and contact your advisor if you have any questions. You may cancel this policy within 10 days of the purchase date for a full refund provided it is before the effective date. Other refunds available are described under Refunds in the General Provisions section of this policy.</Text>
-            <Text style={{fontSize:16,marginTop:10}}>THIS POLICY CONTAINS A CLAUSE WHICH MAY LIMIT THE AMOUNT PAYABLE.</Text>
-            <Text style={{fontSize:16,marginTop:10}}><Text style={{fontWeight:'600',fontSize:18}}>NOTE : </Text>Italicized words are defined terms whose definition appears in the definitions section of the policy.</Text>
+            <Text style={{ marginTop: 10, fontWeight: '600', fontSize: 16 }}>Ontario</Text>
+            <Text style={{ fontWeight: '600', fontSize: 16, marginEnd: 10 }}>7895, Tranmere Drive, Mississauga, ON L5S1V9</Text>
+            <Text style={{ fontWeight: '600', fontSize: 16 }}>905-672-9172</Text>
+            <Text style={{ fontWeight: '600', fontSize: 16 }}>Fax- 905-673-1110</Text>
+            <Text style={{ fontWeight: '600', fontSize: 16 }}>email - info@travelmedicare.com</Text>
+            <Text style={{ fontWeight: '600', fontSize: 16, marginTop: 20 }}>In the event of an emergency or if you require medical treatment you must contact the Assistance Company immediately at:</Text>
+            <Text style={{ fontSize: 16, marginTop: 10, textAlign: 'center' }}>1-844-879-8379</Text>
+            <Text style={{ fontSize: 16, textAlign: 'center' }}>Toll-free from Canada and the USA</Text>
+            <Text style={{ fontSize: 16, textAlign: 'center' }}>+1-416-285-1722</Text>
+            <Text style={{ fontSize: 16, textAlign: 'center' }}>Collect where available</Text>
+            <Text style={{ fontSize: 16, textAlign: 'center' }}>Email: assist@ardentassistance.com</Text>
+            <Text style={{ marginTop: 10, fontWeight: '600', fontSize: 16 }}>Waiting Period-If you purchase this coverage after your departure from your country of origin coverage for any injury that occurred is limited to 50% of eligible expenses, during:</Text>
+            <Text style={{ marginTop: 10 }}>a) the 48-hour period following the effective date of the policy if insurance is purchased within 30 days after your departure from your country of origin) the 8-day period following the effective date of the policy if insurance is purchased more than 30 days after your departure from your country of origin even if related expenses are incurred after the Waiting Period</Text>
+            <Text style={{ fontSize: 18, fontWeight: '500', marginTop: 10 }}>Policy Conditions -</Text>
+            <Text style={{ fontSize: 16 }}>Travel insurance is designed to cover loss arising from sudden and unforeseeable circumstances.It is important that you read and understand your policy as your coverage may be subject to certain limitations or exclusions.{"\n\n"}Your policy may not cover medical conditions and/or symptoms that exist prior to your trip.Check to see how this applies in your policy and how it relates to your effective date. In the event of an accident,injury or sickness,your prior medical history will be reviewed when a claim is reported.{"\n\n"}Costs incurred in your country of origin are notcovered.{"\n\n"}Your policy provides travel assistance;you are required to notify the Assistance Company prior to medical treatment.Your policy may limit benefits should you not contact the Assistance Company before seeking medical treatment.{"\n\n"}Please take the time to read this policy to ensure that it meets your needs and contact your advisor if you have any questions. You may cancel this policy within 10 days of the purchase date for a full refund provided it is before the effective date. Other refunds available are described under Refunds in the General Provisions section of this policy.</Text>
+            <Text style={{ fontSize: 16, marginTop: 10 }}>THIS POLICY CONTAINS A CLAUSE WHICH MAY LIMIT THE AMOUNT PAYABLE.</Text>
+            <Text style={{ fontSize: 16, marginTop: 10 }}><Text style={{ fontWeight: '600', fontSize: 18 }}>NOTE : </Text>Italicized words are defined terms whose definition appears in the definitions section of the policy.</Text>
+            <Text style={{ fontSize: 16, marginTop: 10, marginBottom: 20, lineHeight: 24 }}>If you wish to remain in Canada beyond the expiry date of this policy, you must contact your broker or sales agent and have no reason to seek medical attention during the new period of coverage. You may purchase a new policy subject to the policy terms, conditions and premium schedule in effect at the time the new policy is requested. The cost of insurance will be calculated using the age of the insured on the effective date of the new policy provided that:
+            a) you remain eligible for insurance;
+            b) you have not experienced any changes in your health since your effective date or arrival date;
+            c) the required premium is paid. Each policy is considered a separate contract subject to all limitations and exclusions. The stability period will be applicable as of the effective date of the new policy.
+d) The insured person may designate a beneficiary to receive the amount payable for his/her death. On the absence of such designation, the beneficiary shall be the estate of the insured person. Also add in the following note under all of the policy limitations - *Please refer to the policy wording for full details of all coverages, exclusions and limitation.</Text>
          </View>
       )
    }
 
-   emailPolicy = () =>{
+   emailPolicy = () => {
       let id = this.props.navigation.state.params.id
       let modal = ModalAlert.createProgressModal('Sending Email...', false)
       let formData = new FormData();
       formData.append("user_id", this.props.userData.user_id);
       formData.append("quotation_id", id);
       SSOServices.emailPolicy(formData).then(res => {
-          ModalAlert.hide(modal)
-          ModalAlert.alert(res.message)
+         ModalAlert.hide(modal)
+         ModalAlert.alert(res.message)
       }).catch(err => {
-          ModalAlert.hide(modal)
-          ModalAlert.error(err)
+         ModalAlert.hide(modal)
+         ModalAlert.error(err)
       })
    }
 
-
-   render() {
+   renderItem = ({ item, index }) => {
       return (
-         <SafeAreaView style={{ flex: 1 }}>
+         <TouchableOpacity onPress={() => this.setState({ tab: item })}
+            style={{ height:40,paddingStart:20,paddingEnd:20,alignItems:'center',justifyContent:'center', backgroundColor: this.state.tab == item ? colors.primary : "white", borderRadius: 5 }}>
+            <Text style={{ color: this.state.tab == item ? "white" : "black" }}>{item}</Text>
+         </TouchableOpacity>
+      )
+   }
 
-            <ToolBarComponent
-               title={"Policy Summary"}
-               navigation={this.props.navigation} />
+   renderTabsItem = () =>{
+      switch(this.state.tab){
+         case "Summary": return this.renderSummary()
+         case "Transaction": return this.renderTransaction()
+         case "Payment Transaction": return this.renderPaymentTransaction()
+         
+      }
+   }
 
-            <ScrollView>
 
-               <View style={styles.topContainer}>
-                  <Text style={styles.topTitle}>This is the confirmation of {"\n"} insurance</Text>
-               </View>
+   renderSummary=()=>{
+      return(
+         <ScrollView>
 
-               <TouchableOpacity onPress={()=>this.emailPolicy()} style={styles.policyButton}>
+
+               <TouchableOpacity onPress={() => this.emailPolicy()} style={styles.policyButton}>
                   <Text style={styles.email}>Email Policy</Text>
                </TouchableOpacity>
 
@@ -301,6 +340,58 @@ class PolicyDetails extends React.Component {
                {this.premiumReceiptAmount()}
                {this.contactDetails()}
             </ScrollView>
+      )
+   }
+
+   
+   renderTransaction=()=>{
+      return(
+         <Text>renderTransaction</Text>
+      )
+   }
+
+
+   
+   renderPaymentTransaction=()=>{
+      return(
+         <Text>renderPaymentTransaction</Text>
+      )
+   }
+
+
+
+   render() {
+      return (
+         <SafeAreaView style={{ flex: 1 }}>
+
+            <ToolBarComponent
+               title={"Policy Summary"}
+               navigation={this.props.navigation} />
+
+
+            <View style={styles.topContainer}>
+               <Text style={styles.topTitle}>This is the confirmation of {"\n"} insurance</Text>
+            </View>
+
+            <View>
+
+            <FlatList
+               horizontal
+               renderItem={this.renderItem}
+               showsHorizontalScrollIndicator={false}
+               style={{ marginStart: 20, marginTop: 20, marginEnd: 20 }}
+               data={["Summary", "Transaction", "Payment Transaction"]} />
+
+            </View>
+
+
+            <View style={{backgroundColor:colors.underline,width:'90%',height:2,alignSelf:'center',marginTop:20}}/>
+               <View>
+               {this.renderTabsItem()}
+               </View>
+
+
+            
 
          </SafeAreaView>
 
