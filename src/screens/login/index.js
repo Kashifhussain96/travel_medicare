@@ -11,6 +11,7 @@ import TextInputComponent from '../../components/textInput'
 import CheckBoxComponent from '../../components/checkbox';
 import DropDown from '../../components/dropDown'
 import * as SSOServices from '../../services/SSOService'
+import { FlatList } from 'react-native-gesture-handler';
 
 
 
@@ -20,8 +21,8 @@ class LoginScreen extends React.Component {
       this.state = {
          // email: "dalbir@riskcare.ca",
          // password: "7895@Tranmere",
-      // email: "aravindh@kitkattech.com",
-      // password: "123@aravindh",
+      email: "aravindh@kitkattech.com",
+      password: "123@aravindh",
          // email: "",
          // password: ""
       };
@@ -247,13 +248,13 @@ class LoginScreen extends React.Component {
 
          </ImageBackground>
 
-
-
-
-
-
+        
       );
    }
+
+  
+
+
 }
 const mapStateToProps = state => {
    return {

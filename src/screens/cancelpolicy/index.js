@@ -51,7 +51,7 @@ class cancelpolicy extends React.Component {
             remarks: '',
             status: props.navigation.state.params.status,
             cancelled: false,
-            options: 'corrections',
+            options: 'Select Options',
             financial: "",
             insuredList: [],
             refundMidTermData: [],
@@ -85,6 +85,7 @@ class cancelpolicy extends React.Component {
         this.getActiveEnsured()
         this.getVoidDocument()
         this.getCancel();
+        this.onPressCancelOptions()
     }
 
 
@@ -866,7 +867,7 @@ class cancelpolicy extends React.Component {
             case 'cancellation':
                 this.cancellationApi()
                 break;
-            case 'midTerm':
+            case 'refund mid-term':
                 this.cancelMidtermApi()
                 break;
             case 'corrections': {
@@ -988,7 +989,6 @@ class cancelpolicy extends React.Component {
                         <DatePicker
                             datePicked={(data) => this.handleDatePicked(data, 1)}
                             dateCanceled={() => this.setState({ fromDate: false })}
-                            minimumDate={d1}
                             showDate={this.state.fromDate} />
                         <View style={[styles.singleitem, { justifyContent: 'flex-start' }]}>
                             <Text style={{ fontWeight: '700', marginStart: 20, width: '50%', marginStart: 25, fontSize: 15, color: 'black' }}>Remarks *: </Text>
@@ -1033,7 +1033,7 @@ class cancelpolicy extends React.Component {
             case 'void': {
                 return this.renderVoid();
             }
-            case 'midTerm': {
+            case 'refund mid-term': {
                 return this.renderMidterm();
             }
             case 'corrections': {
@@ -1073,7 +1073,7 @@ class cancelpolicy extends React.Component {
                     childData={this.state.insuredList}
                     value={item.userName}
                     onItemSelected={(value) => this.selectUserVoid(value, item, index)}
-                    dropDownTitle={"Select User:"} />
+                    dropDownTitle={"Select an Insured:"} />
 
                 <View>
 
@@ -1228,9 +1228,10 @@ class cancelpolicy extends React.Component {
                         childData={this.state.insuredList}
                         value={item.insuredName}
                         onItemSelected={(value) => this.selectUser(value, item, index)}
-                        dropDownTitle={"Select User:"} />
-                    <Text style={{ fontWeight: '600', marginTop: 20, fontSize: 20, marginEnd: 20 }}>Premium Amount{"\n"}$ {item.premiumAmount}</Text>
+                        dropDownTitle={"Select an Insured:"} />
                 </View>
+
+                <Text style={{ fontWeight: '600', marginStart:20, marginTop: 20, fontSize: 20, marginEnd: 20 }}>Premium Amount:{"   "}$ {item.premiumAmount}</Text>
 
                 {
                     item.isCheck &&
@@ -1359,7 +1360,7 @@ class cancelpolicy extends React.Component {
                 </View>
                 <TouchableOpacity onPress={() => {
                     this.onPressRefundNew()
-                }} style={{ backgroundColor: 'rgb(62, 185, 186)', paddingStart: 20, paddingEnd: 20, paddingTop: 10, paddingBottom: 10,width:100, borderRadius: 10,marginTop:20,marginStart:20 }}>
+                }} style={{ backgroundColor: 'rgb(62, 185, 186)', paddingStart: 20, paddingEnd: 20, paddingTop: 10, paddingBottom: 10, width: 150, borderRadius: 10, justifyContent: 'center', alignItems: 'center', marginTop: 20, marginStart: 20 }}>
                     <Text style={{ color: 'white', fontWeight: '600' }}>Add New</Text>
                 </TouchableOpacity>
                 <View style={[styles.singleitem, { justifyContent: 'flex-start' }]}>
@@ -1373,7 +1374,7 @@ class cancelpolicy extends React.Component {
                     <DatePicker
                         datePicked={(data) => this.handleDatePicked(data, 2)}
                         dateCanceled={() => this.setState({ midTermDate: false })}
-                        minimumDate={d1}
+                        // minimumDate={d1}
                         showDate={this.state.midTermDate} />
 
                 </View>
@@ -1631,6 +1632,38 @@ class cancelpolicy extends React.Component {
         })
     }
 
+
+
+
+    onPressCancelOptions = () => {
+        ModalAlert.createOptionModal(this.renderOptions(), 'white', { backgroundColor: 'white', height: 250 })
+    }
+
+    onPressOptions = (status) => {
+        this.setState({ options: status })
+        ModalAlert.hideAll()
+    }
+
+    renderOptions = () => {
+        return (
+            <View>
+                <Text style={{ alignSelf: 'center', fontWeight: '600', fontSize: 20, marginTop: 15 }}>Select an Options:</Text>
+                <TouchableOpacity onPress={() => this.onPressOptions('void')}>
+                    <Text style={{ alignSelf: 'center', fontWeight: '500', fontSize: 18, marginTop: 20 }}>Void</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => this.onPressOptions('cancellation')}>
+                    <Text style={{ alignSelf: 'center', fontWeight: '500', fontSize: 18, marginTop: 20 }}>Cancellation</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => this.onPressOptions('refund mid-term')}>
+                    <Text style={{ alignSelf: 'center', fontWeight: '500', fontSize: 18, marginTop: 20 }}>Refund mid-term</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => this.onPressOptions('corrections')}>
+                    <Text style={{ alignSelf: 'center', fontWeight: '500', fontSize: 18, marginTop: 20 }}>Corrections</Text>
+                </TouchableOpacity>
+            </View>
+        )
+    }
+
     render() {
         return (
             <SafeAreaView style={{ flex: 1 }}>
@@ -1755,7 +1788,7 @@ class cancelpolicy extends React.Component {
                             title={"Upload Boarding Passes"}  /> */}
                         <View style={{ marginTop: 20 }} />
                     </View>
-
+                    {/* 
 
                     <DropDownView
                         styles={{ alignSelf: 'flex-start', marginStart: 10, marginTop: 10 }}
@@ -1765,10 +1798,18 @@ class cancelpolicy extends React.Component {
                             { label: 'Refund mid-term', value: 'midTerm' },
                             { label: 'Corrections', value: 'corrections' },
                         ]}
+                        ref={(ref)=> this.options = ref}
                         value={this.state.options}
                         disabled={this.state.disableAll}
                         onItemSelected={(value) => this.setState({ options: value })}
-                        dropDownTitle={"Select Options:"} />
+                        dropDownTitle={"Select Options:"} /> */}
+
+
+
+
+                    <TouchableOpacity onPress={() => this.onPressCancelOptions()}>
+                        <Text style={{ borderColor: 'gray', borderWidth: 1, width: '40%', marginStart: 20, marginTop: 20, padding: 10, borderRadius: 10, textTransform: 'capitalize' }}>{this.state.options}</Text>
+                    </TouchableOpacity>
 
 
 
@@ -1843,7 +1884,7 @@ class cancelpolicy extends React.Component {
 
 
                     <TouchableOpacity onPress={() => this.onPressCancel()} style={{ padding: 10, height: 50, marginBottom: 50, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-end', marginStart: 10, marginTop: 20, marginRight: 12, width: '45%', borderRadius: 10, backgroundColor: 'rgb(62, 185, 186)' }}>
-                        <Text style={{ textAlign: 'center', color: 'white', fontWeight: '800', fontSize: 16 }}>Cancel</Text>
+                        <Text style={{ textAlign: 'center', color: 'white', fontWeight: '800', fontSize: 16 }}>{this.state.options == "corrections" ? 'Submit' : 'Cancel'}</Text>
                     </TouchableOpacity>
                 </ScrollView>
 

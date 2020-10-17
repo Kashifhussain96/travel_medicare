@@ -33,6 +33,7 @@ export default class DropDownView extends React.Component {
                     <RNPickerSelect
                         disabled={this.props.disabled}
                         onValueChange={(value) => this.props.onItemSelected(value)}
+                        
                         style={StyleSheet.create({
 
                             inputAndroid: {
