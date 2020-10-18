@@ -21,10 +21,10 @@ class LoginScreen extends React.Component {
       this.state = {
          // email: "dalbir@riskcare.ca",
          // password: "7895@Tranmere",
-      email: "aravindh@kitkattech.com",
-      password: "123@aravindh",
-         // email: "",
-         // password: ""
+      // email: "aravindh@kitkattech.com",
+      // password: "123@aravindh",
+         email: "",
+         password: ""
       };
 
 

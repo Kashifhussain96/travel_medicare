@@ -1884,7 +1884,7 @@ class cancelpolicy extends React.Component {
 
 
                     <TouchableOpacity onPress={() => this.onPressCancel()} style={{ padding: 10, height: 50, marginBottom: 50, alignItems: 'center', justifyContent: 'center', alignSelf: 'flex-end', marginStart: 10, marginTop: 20, marginRight: 12, width: '45%', borderRadius: 10, backgroundColor: 'rgb(62, 185, 186)' }}>
-                        <Text style={{ textAlign: 'center', color: 'white', fontWeight: '800', fontSize: 16 }}>{this.state.options == "corrections" ? 'Submit' : 'Cancel'}</Text>
+                        <Text style={{ textAlign: 'center', color: 'white', fontWeight: '800', fontSize: 16 }}>{this.state.options == "corrections" ? 'Submit' : 'Submit'}</Text>
                     </TouchableOpacity>
                 </ScrollView>
 

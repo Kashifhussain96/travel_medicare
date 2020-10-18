@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { View, Image, Text, StatusBar, Animated, Easing, SafeAreaView, StyleSheet, TouchableOpacity, ScrollView, FlatList } from 'react-native';
+import { View, Image, Text, StatusBar, Animated, Easing, SafeAreaView, StyleSheet, TouchableOpacity, ScrollView, FlatList, Linking } from 'react-native';
 // import SignInNavigator from '../../navigation/SignInNavigator'
 import * as SSOServices from '../../services/SSOService'
 import ModalAlert from '../../utils/modal'
@@ -29,7 +29,12 @@ class PolicyDetails extends React.Component {
             poilcy_details: {
 
             },
-            installment: []
+            installment: [],
+            transactionList: [],
+            voidList: [],
+            refundList: [],
+            cancellationList: [],
+            correctionList: []
          }
       };
 
@@ -38,13 +43,18 @@ class PolicyDetails extends React.Component {
    async componentDidMount() {
       this.getData()
       this.getPolicyTransaction()
-      //this.getPolicyPamentTransaction()
+      this.getPolicyPamentTransaction()
    }
 
    getPolicyTransaction = () => {
-      let id = this.props.navigation.state.params.id
+      let id = this.props.navigation.state.params.policy_id
       SSOServices.getPolicyTransaction(id).then(res => {
-
+         this.setState({
+            voidList: res.data.policy_void_transactions,
+            refundList: res.data.policy_refund_transactions,
+            correctionList: res.data.policy_correction_transactions,
+            cancellationList: res.data.policy_cancel_transactions
+         })
       }).catch(err => {
 
       })
@@ -53,12 +63,14 @@ class PolicyDetails extends React.Component {
    getPolicyPamentTransaction = () => {
       let formData = new FormData();
 
-      let id = this.props.navigation.state.params.id
+      let id = this.props.navigation.state.params.policy_id
 
       formData.append("user_id", this.props.userData.user_id + "");
       formData.append("policy_id", id + "");
       SSOServices.getPolicyPamentTransaction(formData).then(res => {
-
+         this.setState({
+            transactionList: res.data
+         })
       }).catch(err => {
 
       })
@@ -88,8 +100,8 @@ class PolicyDetails extends React.Component {
       return (
          <View style={styles.personalDetails}>
             <View style={[styles.insuranceContainer, { marginTop: 10 }]}>
-               <Text style={styles.insuranceTitle}>Visitors to Canada:</Text>
-               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.super_visa == 1 ? "Super Visa" : ''}</Text>
+               <Text style={styles.insuranceTitle}>Policy Type:</Text>
+               <Text style={styles.insuranceDesc}>Visitors to Canada - {this.state.policydata.poilcy_details.super_visa == 1 ? "Super Visa" : ''}</Text>
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Policyholder Name:</Text>
@@ -97,11 +109,11 @@ class PolicyDetails extends React.Component {
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Policyholder Address:</Text>
-               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.policy_holder_address}</Text>
+               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.policy_holder_address+", "+this.state.policydata.poilcy_details.policy_holder_city+", Ontario, "+this.state.policydata.poilcy_details.policy_holder_postal_code}</Text>
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Transaction Type:</Text>
-               <Text style={styles.insuranceDesc}>New Quote</Text>
+               <Text style={styles.insuranceDesc}>New Policy</Text>
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Policy Effective   Date:</Text>
@@ -112,21 +124,21 @@ class PolicyDetails extends React.Component {
                <Text style={styles.insuranceDesc}>{(this.state.policydata.poilcy_details.spouse_details != null && this.state.policydata.poilcy_details.spouse_details.length > 0) ? this.state.policydata.poilcy_details.spouse_details[0].plan_type : ""}</Text>
             </View>
             <View style={styles.insuranceContainer}>
-               <Text style={styles.insuranceTitle}>Arrival Date in Canada:</Text>
-               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.arrival_date}</Text>
+               <Text style={styles.insuranceTitle}>Departure Date from Country of Origin:</Text>
+               <Text style={styles.insuranceDesc}></Text>
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Deductible:</Text>
-               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.deductibleAmount != null ? `CAD ` + this.state.policydata.poilcy_details.deductibleAmount.amount : ''}</Text>
+               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.deductibleAmount != null ? `$ ` + this.state.policydata.poilcy_details.deductibleAmount.amount+" Per Claim" : ''}</Text>
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Policy Number:</Text>
                <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.policy_no}</Text>
             </View>
-            <View style={styles.insuranceContainer}>
+            {/* <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Quote Number:</Text>
                <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.quotaion_no}</Text>
-            </View>
+            </View> */}
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Broker:</Text>
                <Text style={styles.insuranceDesc}>{this.state.policydata.policyadmin.first_name + ` ` + this.state.policydata.policyadmin.last_name}</Text>
@@ -141,15 +153,15 @@ class PolicyDetails extends React.Component {
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Coverage Limit:</Text>
-               <Text style={styles.insuranceDesc}>{`CAD ` + this.state.policydata.poilcy_details.policy_limit}</Text>
+               <Text style={styles.insuranceDesc}>{`$ ` + this.state.policydata.poilcy_details.policy_limit+" Per insured"}</Text>
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Family Coverage:</Text>
-               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.family_coverage == 0 ? "No" : "Yes"}</Text>
+               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.family_coverage == 0 ? "N/A" : "Yes"}</Text>
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Total Premium:</Text>
-               <Text style={styles.insuranceDesc}>{`CAD ` + this.state.policydata.poilcy_details.quote_amount}</Text>
+               <Text style={styles.insuranceDesc}>{`$ ` + this.state.policydata.poilcy_details.quote_amount}</Text>
             </View>
 
          </View>
@@ -283,78 +295,501 @@ d) The insured person may designate a beneficiary to receive the amount payable 
    renderItem = ({ item, index }) => {
       return (
          <TouchableOpacity onPress={() => this.setState({ tab: item })}
-            style={{ height:40,paddingStart:20,paddingEnd:20,alignItems:'center',justifyContent:'center', backgroundColor: this.state.tab == item ? colors.primary : "white", borderRadius: 5 }}>
+            style={{ height: 40, paddingStart: 20, paddingEnd: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: this.state.tab == item ? colors.primary : "white", borderRadius: 5 }}>
             <Text style={{ color: this.state.tab == item ? "white" : "black" }}>{item}</Text>
          </TouchableOpacity>
       )
    }
 
-   renderTabsItem = () =>{
-      switch(this.state.tab){
-         case "Summary": return this.renderSummary()
-         case "Transaction": return this.renderTransaction()
-         case "Payment Transaction": return this.renderPaymentTransaction()
-         
+   renderTabsItem = () => {
+      switch (this.state.tab) {
+         case "Summary": return <View style={{ height: '85%', marginBottom: 10 }}>{this.renderSummary()}</View>
+         case "Transaction": return <View style={{ height: '85%', marginBottom: -10 }}>{this.renderTransaction()}</View>
+         case "Payment Transaction": return <View style={{ height: '85%', marginBottom: 10 }}>{this.renderPaymentTransaction()}</View>
+
       }
    }
 
 
-   renderSummary=()=>{
-      return(
+   renderSummary = () => {
+      return (
+         <ScrollView>
+            <TouchableOpacity onPress={() => this.emailPolicy()} style={styles.policyButton}>
+               <Text style={styles.email}>Email Policy</Text>
+            </TouchableOpacity>
+
+
+            <View style={styles.personalDetails}>
+               <Text style={styles.advisoryDetails}>Advisor Details:-</Text>
+               <Text style={styles.name}>{this.state.policydata.policyadmin.first_name + ' ' + this.state.policydata.policyadmin.last_name}</Text>
+               <Text style={styles.number}>{this.state.policydata.policyadmin.phone}</Text>
+               <Text style={styles.userEmail}>{this.state.policydata.policyadmin.email}</Text>
+               <Text style={styles.userAddress}>{this.state.policydata.policyadmin.address}</Text>
+               <Text style={styles.addressState}>{this.state.policydata.policyadmin.province_licensed}</Text>
+            </View>
+
+            {this.renderInsurance()}
+
+            <Text style={styles.listTravellers}>List Of Travellers</Text>
+            <FlatList
+               renderItem={this.renderListTravellers}
+               keyExtractor={(id) => this.key = id}
+               data={this.state.policydata.poilcy_details.spouse_details} />
+
+
+
+            {this.state.instText !== "" && this.showInstallmentInfo()}
+            {this.state.instText !== "" && <View>
+               <Text style={styles.listTravellers}>Installments</Text>
+               <FlatList
+                  renderItem={this.listOfInstallment}
+                  keyExtractor={(id) => this.key1 = id}
+                  data={this.state.policydata.installment} />
+            </View>}
+            <Text style={styles.listTravellers}>Premium Receipt</Text>
+            {this.premiumReceiptAmount()}
+            {this.contactDetails()}
+         </ScrollView>
+      )
+   }
+
+
+   renderItemVoid = ({ item, index }) => {
+      return (
+         <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Insured Name:</Text>
+            <Text style={{ width: '40%' }}>{item.insured_name}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Requested effective date of endorsement:</Text>
+            <Text style={{ width: '40%' }}>{item.requested_date}</Text>
+         </View>
+         
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Refund Amount (CAD):</Text>
+            <Text style={{ width: '40%', color: 'red' }}>-{item.refund_amount}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Transaction No:</Text>
+            <Text style={{ width: '40%' }}>{item.transaction_no}</Text>
+
+         </View>
+        
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Remarks:</Text>
+            <Text style={{ width: '40%' }}>{item.remarks}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Status:</Text>
+            <Text style={{ width: '40%' }}>{item.transaction_status}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Attachments:</Text>
+           {item.attachment ? <TouchableOpacity onPress={() => this.showCancelDocs(item, index)} style={{ width: '40%' }}>
+               <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
+            </TouchableOpacity> : <Text style={{ width: '40%' }}>-</Text>}
+         </View>
+         
+         <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Action:</Text>
+            <Text style={{ width: '40%' }}></Text>
+         </View>
+      </View>
+
+      )
+   }
+
+
+   renderItemRefund = ({ item, index }) => {
+      return (
+         <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Insured Name:</Text>
+            <Text style={{ width: '40%' }}>{item.insured_name}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Requested effective date of endorsement:</Text>
+            <Text style={{ width: '40%' }}>{item.requested_date}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Cancellation Date:</Text>
+            <Text style={{ width: '40%' }}>{item.cancellation_date}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Refund Amount (CAD):</Text>
+            <Text style={{ width: '40%', color: 'red' }}>-{item.refund_amount}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Transaction No:</Text>
+            <Text style={{ width: '40%' }}>{item.transaction_no}</Text>
+
+         </View>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Type:</Text>
+            <Text style={{ width: '40%' }}>{item.type}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Remarks:</Text>
+            <Text style={{ width: '40%' }}>{item.remarks}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Attachments:</Text>
+          <Text style={{ width: '40%' }}>-</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Status:</Text>
+            <Text style={{ width: '40%' }}>{item.transaction_status}</Text>
+         </View>
+         <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+            <Text style={{ width: '40%' }}>Action:</Text>
+            <Text style={{ width: '40%' }}></Text>
+         </View>
+      </View>
+
+
+      )
+   }
+
+
+   renderItemCancellation = ({ item, index }) => {
+      return (
+         <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Policy Holder Name:</Text>
+               <Text style={{ width: '40%' }}>{this.state.policydata.poilcy_details.policy_holder_name}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Requested effective date of endorsement:</Text>
+               <Text style={{ width: '40%' }}>{item.requested_date}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Cancellation Date:</Text>
+               <Text style={{ width: '40%' }}>{item.cancellation_date}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Refund Amount (CAD):</Text>
+               <Text style={{ width: '40%', color: 'red' }}>-{item.refund_amount}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Transaction No:</Text>
+               <Text style={{ width: '40%' }}>{item.transaction_no}</Text>
+
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Type:</Text>
+               <Text style={{ width: '40%' }}>{item.type}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Remarks:</Text>
+               <Text style={{ width: '40%' }}>{item.remarks}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Attachments:</Text>
+              {item.attachment ? <TouchableOpacity onPress={() => this.showCancelDocs(item, index)} style={{ width: '40%' }}>
+                  <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
+               </TouchableOpacity> : <Text style={{ width: '40%' }}>-</Text>}
+            </View>
+            <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Status:</Text>
+               <Text style={{ width: '40%' }}>{item.transaction_status}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Action:</Text>
+               <Text style={{ width: '40%' }}></Text>
+            </View>
+         </View>
+
+      )
+   }
+
+   showCancelDocs = (item, index) => {
+      ModalAlert.createOptionModal(this.renderCancelDocs(item, index), false, { height: '75%' })
+   }
+
+   renderCancelDocs = (item, index) => {
+      let data = JSON.parse(item.attachment)
+      return (
+         <View>
+            <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold' }}>Attachments For Transaction : </Text>
+
+            <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '100%', alignSelf: 'center' }}>
+               <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                  <Text style={{ width: '40%' }}>Type:</Text>
+                  <Text style={{ width: '40%' }}>{data[0].type}</Text>
+               </View>
+               <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                  <Text style={{ width: '40%' }}>Attachment:</Text>
+                  <Text style={{ width: '40%' }}>{data[0].attachment.slice(28, data[0].attachment.length)}</Text>
+               </View>
+               <View style={{ justifyContent: 'space-between', marginStart: 20,marginBottom: 20,  marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                  <Text style={{ width: '40%' }}>Download:</Text>
+                  <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + data[0].attachment) }} style={{ width: '40%' }}>
+                     <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
+                  </TouchableOpacity>
+               </View>
+            </View>
+
+            <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '100%', alignSelf: 'center' }}>
+               <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                  <Text style={{ width: '40%' }}>Type:</Text>
+                  <Text style={{ width: '40%' }}>{data[1].type}</Text>
+               </View>
+               <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                  <Text style={{ width: '40%' }}>Attachment:</Text>
+                  <Text style={{ width: '40%' }}>{data[1].attachment.slice(28, data[1].attachment.length)}</Text>
+               </View>
+               <View style={{ justifyContent: 'space-between', marginStart: 20,marginBottom: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                  <Text style={{ width: '40%' }}>Download:</Text>
+                  <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + data[1].attachment) }} style={{ width: '40%' }}>
+                     <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
+                  </TouchableOpacity>
+               </View>
+            </View>
+         </View>
+      )
+   }
+
+   showRequestedCorrections = (item, index) => {
+      if (item.correction_requested_json.includes("field")) {
+         ModalAlert.createOptionModal(this.renderCorrection(item), false, { height: '60%' })
+      } else {
+         ModalAlert.createOptionModal(this.renderArrivalCorrection(item), false, { height: '75%' })
+      }
+   }
+
+
+   renderArrivalCorrection = (item) => {
+      let data = JSON.parse(item.correction_requested_json)
+
+      return (
+         <View>
+            <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold' }}>Requested Data For Transaction :{item.transaction_no}</Text>
+
+            <FlatList
+               renderItem={({ item, index }) => {
+                  return (
+                     <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+                        <Text style={{ fontWeight: 'bold', fontSize: 20, marginStart: 10, marginTop: 10 }}>Insured Name:</Text>
+                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 10, flexDirection: 'row' }}>
+                           <Text style={{ width: '40%' }}>Old Name:</Text>
+                           <Text style={{ width: '40%' }}>{item.old_insuredname}</Text>
+                        </View>
+                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                           <Text style={{ width: '40%' }}>New Name:</Text>
+                           <Text style={{ width: '40%' }}>{item.new_insuredname}</Text>
+                        </View>
+                        <Text style={{ fontWeight: 'bold', fontSize: 20, marginStart: 10, marginTop: 10 }}>Date of Birth:</Text>
+                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 10, marginBottom: 20, flexDirection: 'row' }}>
+                           <Text style={{ width: '40%' }}>Old DOB:</Text>
+                           <Text style={{ width: '40%' }}>{item.old_ins_dob}</Text>
+                        </View>
+                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                           <Text style={{ width: '40%' }}>New DOB:</Text>
+                           <Text style={{ width: '40%' }}>{item.new_ins_dob}</Text>
+                        </View>
+                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row', marginBottom: 20 }}>
+                           <Text style={{ width: '40%' }}>Proof:</Text>
+                           <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + item.document) }} style={{ width: '40%' }}>
+                              <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
+                           </TouchableOpacity>
+                        </View>
+                     </View>
+                  )
+               }}
+               data={data} />
+         </View>
+      )
+   }
+   renderCorrection = (item) => {
+      let data = JSON.parse(item.correction_requested_json)
+
+      return (
+         <View>
+            <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold' }}>Requested Data For Transaction :{item.transaction_no}</Text>
+
+            <FlatList
+               renderItem={({ item, index }) => {
+                  return (
+                     <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                           <Text style={{ width: '40%' }}>Field:</Text>
+                           <Text style={{ width: '40%' }}>{item.field}</Text>
+                        </View>
+                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                           <Text style={{ width: '40%' }}>Old Value:</Text>
+                           <Text style={{ width: '40%' }}>{item.old_value}</Text>
+                        </View>
+                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, marginBottom: 20, flexDirection: 'row' }}>
+                           <Text style={{ width: '40%' }}>New Value:</Text>
+                           <Text style={{ width: '40%' }}>{item.new_value}</Text>
+                        </View>
+
+                     </View>
+                  )
+               }}
+               data={data} />
+         </View>
+      )
+   }
+
+
+   renderItemCorrection = ({ item, index }) => {
+      return (
+         <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Requested Date:</Text>
+               <Text style={{ width: '40%' }}>{item.requested_date}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Transaction No.:</Text>
+               <Text style={{ width: '40%' }}>{item.transaction_no}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Type of Correction:</Text>
+               <Text style={{ width: '40%' }}>{item.type}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Correction needed in:</Text>
+               <Text style={{ width: '40%' }}>{item.correction_fields}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Requested Corrections:</Text>
+               <TouchableOpacity onPress={() => this.showRequestedCorrections(item, index)} style={{ width: '40%' }}>
+                  <Image source={require('../../assets/eye.png')} style={{ width: 20, height: 20 }} />
+               </TouchableOpacity>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Amount(CAD):</Text>
+               <Text style={{ width: '40%' }}>{item.refund_amount ? item.refund_amount : '-'}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>To/From Customer(CAD):</Text>
+               <Text style={{ width: '40%' }}>-</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Remarks:</Text>
+               <Text style={{ width: '40%' }}>{item.remarks}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Status:</Text>
+               <Text style={{ width: '40%' }}>{item.transaction_status}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Action:</Text>
+               <Text style={{ width: '40%' }}></Text>
+            </View>
+         </View>
+
+      )
+   }
+
+
+   renderTransaction = () => {
+      return (
          <ScrollView>
 
 
-               <TouchableOpacity onPress={() => this.emailPolicy()} style={styles.policyButton}>
-                  <Text style={styles.email}>Email Policy</Text>
-               </TouchableOpacity>
+            <View>
+               <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',marginTop:20,marginStart:20 }}>Policy Transactions for the Policy ({this.state.policydata.poilcy_details.quotaion_no})</Text>
 
+               <View>
+                  <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',marginTop:20,marginStart:20 }}>Void Policy Transactions</Text>
+                  
 
-               <View style={styles.personalDetails}>
-                  <Text style={styles.advisoryDetails}>Advisor Details:-</Text>
-                  <Text style={styles.name}>{this.state.policydata.policyadmin.first_name + ' ' + this.state.policydata.policyadmin.last_name}</Text>
-                  <Text style={styles.number}>{this.state.policydata.policyadmin.phone}</Text>
-                  <Text style={styles.userEmail}>{this.state.policydata.policyadmin.email}</Text>
-                  <Text style={styles.userAddress}>{this.state.policydata.policyadmin.address}</Text>
-                  <Text style={styles.addressState}>{this.state.policydata.policyadmin.province_licensed}</Text>
+                  {
+                     this.state.voidList.length > 0 ?<FlatList data={this.state.voidList} renderItem={this.renderItemVoid} />
+                        : <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',alignSelf:'center', marginTop:20,marginStart:20 }}>No Data</Text>
+                  }
                </View>
 
-               {this.renderInsurance()}
 
-               <Text style={styles.listTravellers}>List Of Travellers</Text>
-               <FlatList
-                  renderItem={this.renderListTravellers}
-                  keyExtractor={(id) => this.key = id}
-                  data={this.state.policydata.poilcy_details.spouse_details} />
+               <View>
+                  <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',marginTop:20,marginStart:20 }}>Refund Policy Transactions</Text>
+                  
+
+                  {
+                     this.state.refundList.length > 0 ?<FlatList data={this.state.refundList} renderItem={this.renderItemRefund} />
+                        : <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',alignSelf:'center', marginTop:20,marginStart:20 }}>No Data</Text>
+                  }
+               </View>
 
 
+               <View>
+                  <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',marginTop:20,marginStart:20 }}>Cancellation Transactions</Text>
+                  
+                  {
+                     this.state.cancellationList.length > 0 ?<FlatList data={this.state.cancellationList} renderItem={this.renderItemCancellation} />
+                        : <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',alignSelf:'center', marginTop:20,marginStart:20 }}>No Data</Text>
+                  }
+                  
+               </View>
 
-               {this.state.instText !== "" && this.showInstallmentInfo()}
-               {this.state.instText !== "" && <View>
-                  <Text style={styles.listTravellers}>Installments</Text>
-                  <FlatList
-                     renderItem={this.listOfInstallment}
-                     keyExtractor={(id) => this.key1 = id}
-                     data={this.state.policydata.installment} />
-               </View>}
-               <Text style={styles.listTravellers}>Premium Receipt</Text>
-               {this.premiumReceiptAmount()}
-               {this.contactDetails()}
-            </ScrollView>
+
+               <View>
+                  <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',marginTop:20,marginStart:20 }}>Correction Transactions</Text>
+                  {
+                     this.state.correctionList.length > 0 ? <FlatList data={this.state.correctionList} renderItem={this.renderItemCorrection} />
+                        : <Text style={{ lineHeight: 20, marginTop: 20,marginBottom:20, fontWeight: 'bold',alignSelf:'center', marginTop:20,marginStart:20 }}>No Data</Text>
+                  }
+                  
+               </View>
+
+            </View>
+         </ScrollView>
+
       )
    }
 
-   
-   renderTransaction=()=>{
-      return(
-         <Text>renderTransaction</Text>
+   renderPaymentTrans = ({ item, index }) => {
+      return (
+         <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Card Holder Name:</Text>
+               <Text style={{ width: '40%' }}>{item.card_holder_name}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Date:</Text>
+               <Text style={{ width: '40%' }}>{item.payment_date}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Premium Type:</Text>
+               <Text style={{ width: '40%' }}>{item.premium_type}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Type:</Text>
+               <Text style={{ width: '40%' }}>{item.type}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Amount(CAD):</Text>
+               <Text style={{ width: '40%' }}>{item.amount}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Transaction ID:</Text>
+               <Text style={{ width: '40%' }}>{item.cardtransaction_json_details.transaction_id}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Transaction Description:</Text>
+               <Text style={{ width: '40%' }}>{item.cardtransaction_json_details.transaction_desc}</Text>
+            </View>
+            <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+               <Text style={{ width: '40%' }}>Action:</Text>
+               <Text style={{ width: '40%' }}></Text>
+            </View>
+         </View>
+
       )
    }
 
 
-   
-   renderPaymentTransaction=()=>{
-      return(
-         <Text>renderPaymentTransaction</Text>
+   renderPaymentTransaction = () => {
+      return (
+         <View style={{ height: '100%' }}>
+            <FlatList
+               style={{ height: '100%' }}
+               renderItem={this.renderPaymentTrans}
+               data={this.state.transactionList} />
+         </View>
       )
    }
 
@@ -375,23 +810,23 @@ d) The insured person may designate a beneficiary to receive the amount payable 
 
             <View>
 
-            <FlatList
-               horizontal
-               renderItem={this.renderItem}
-               showsHorizontalScrollIndicator={false}
-               style={{ marginStart: 20, marginTop: 20, marginEnd: 20 }}
-               data={["Summary", "Transaction", "Payment Transaction"]} />
+               <FlatList
+                  horizontal
+                  renderItem={this.renderItem}
+                  showsHorizontalScrollIndicator={false}
+                  style={{ marginStart: 20, marginTop: 20, marginEnd: 20 }}
+                  data={["Summary", "Transaction", "Payment Transaction"]} />
 
             </View>
 
 
-            <View style={{backgroundColor:colors.underline,width:'90%',height:2,alignSelf:'center',marginTop:20}}/>
-               <View>
+            <View style={{ backgroundColor: colors.underline, width: '90%', height: 2, alignSelf: 'center', marginTop: 20 }} />
+            <View>
                {this.renderTabsItem()}
-               </View>
+            </View>
 
 
-            
+
 
          </SafeAreaView>
 

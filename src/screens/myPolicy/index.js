@@ -187,7 +187,7 @@ class MyPolicy extends React.Component {
                 this.props.navigation.navigate('CancelPolicy', { id: item.id, quotation_id: item.quotation_id, status: item.status })
                 break;
             case 1:
-                this.props.navigation.navigate('PolicyDetails', { id: item.quotation_id })
+                this.props.navigation.navigate('PolicyDetails', { id: item.quotation_id ,policy_id: item.id})
                 break;
             case 2:
                 this.emailPolicy(item.quotation_id)
