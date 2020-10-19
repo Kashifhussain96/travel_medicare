@@ -83,6 +83,12 @@ export const MainStack = createStackNavigator(
         header: null,
       },
     },
+    PolicyClaim: {
+      screen: ScreenName.PolicyClaim,
+      navigationOptions: {
+        header: null,
+      },
+    },
   },
   {
     initialRouteName: "HomeInitial",

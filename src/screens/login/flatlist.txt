@@ -1,0 +1,53 @@
+
+let data = [
+    {
+        name:"",
+        image:"",
+        gender:"",
+        id:"",
+        designation:"",
+        din:"",
+        dateOfAppointment:""
+    },
+     {
+        name:"",
+        image:"",
+        gender:"",
+        id:"",
+        designation:"",
+        din:"",
+        dateOfAppointment:""
+    }
+]
+
+SafeAreaview
+    Flatlist
+        renderItem
+            TouchableOpacity -----------------------> Card
+                View  -->>>>>> Contains full row -->>>  flexDirection : 'row', justifyContent: 'space-between'
+                    View -> Space between two items --->>>  flexDirection : 'row'
+                        {data.image != null ? Image : View
+                                                        Text} 
+                        View
+                            Text
+                            Text
+                        Text
+                    Image
+
+                View flexDirection : 'row', justifyContent: 'space-between'
+                    View
+                        Text
+                        Text
+                    View
+                        Text
+                        Text
+                View
+                    Text
+                    Text
+        data={data}
+
+    TouchableOpacity
+        Image
+
+UI
+Styles

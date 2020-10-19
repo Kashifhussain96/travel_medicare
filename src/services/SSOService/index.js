@@ -321,3 +321,12 @@ export async function getPolicyPamentTransaction(data) {
   });
 }
 
+
+export async function reportClaim(data) {
+  return requestMultiPart({
+    url: `submit_claim_report`,
+    method: "POST",
+    data : data
+  });
+}
+

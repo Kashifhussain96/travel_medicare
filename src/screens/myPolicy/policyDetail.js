@@ -17,6 +17,7 @@ class PolicyDetails extends React.Component {
       this.state = {
          instText: "",
          tab: "Summary",
+         status :props.navigation.state.params.status,
          policydata: {
             policyadmin: {
                first_name: '',
@@ -34,7 +35,8 @@ class PolicyDetails extends React.Component {
             voidList: [],
             refundList: [],
             cancellationList: [],
-            correctionList: []
+            correctionList: [],
+            
          }
       };
 
@@ -44,6 +46,7 @@ class PolicyDetails extends React.Component {
       this.getData()
       this.getPolicyTransaction()
       this.getPolicyPamentTransaction()
+
    }
 
    getPolicyTransaction = () => {
@@ -125,7 +128,7 @@ class PolicyDetails extends React.Component {
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Departure Date from Country of Origin:</Text>
-               <Text style={styles.insuranceDesc}></Text>
+               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.arrival_date}</Text>
             </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Deductible:</Text>
@@ -312,12 +315,22 @@ d) The insured person may designate a beneficiary to receive the amount payable 
 
 
    renderSummary = () => {
+
+      console.log(this.state.status)
       return (
          <ScrollView>
+
+            <View style={{flexDirection:'row',justifyContent:'space-between'}}>
             <TouchableOpacity onPress={() => this.emailPolicy()} style={styles.policyButton}>
                <Text style={styles.email}>Email Policy</Text>
             </TouchableOpacity>
 
+           { this.state.status == 1 && <TouchableOpacity onPress={() => this.props.navigation.navigate('PolicyClaim',{data : this.state.policydata})} style={[styles.policyButton,{marginEnd:20}]}>
+               <Text style={styles.email}>Report a Claim</Text>
+            </TouchableOpacity>}
+
+            </View>
+           
 
             <View style={styles.personalDetails}>
                <Text style={styles.advisoryDetails}>Advisor Details:-</Text>
@@ -908,10 +921,10 @@ const styles = StyleSheet.create({
    email: {
       color: 'white',
       fontWeight: '600',
-      fontSize: 20
+      fontSize: 18
    },
    policyButton: {
-      height: 50,
+      height: 45,
       width: 150,
       marginStart: 10,
       marginTop: 10,

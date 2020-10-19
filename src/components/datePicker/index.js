@@ -20,6 +20,7 @@ export default class DatePicker extends React.Component {
                     title={"Select Date"}
                     mode={"date"}
                     minimumDate={this.props.minimumDate}
+                    maximumDate={this.props.maximumDate}
                     onCancel={ ()=> this.props.dateCanceled()}
                     isDarkModeEnabled={false} />
             </View>

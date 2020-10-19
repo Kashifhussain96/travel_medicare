@@ -18,6 +18,7 @@ import GetQuote from "../screens/getQuote";
 import ForgotPassword from "../screens/forgotpassword";
 import CancelPolicy from "../screens/cancelpolicy";
 import Payment from "../screens/getQuote/payment";
+import PolicyClaim from "../screens/claimPolicy";
 import EditQuote from "../screens/editQuote";
 
 export default {
@@ -41,5 +42,6 @@ export default {
   EditQuote,
   ForgotPassword,
   CancelPolicy,
+  PolicyClaim,
   Payment,
 };
