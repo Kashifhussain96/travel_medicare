@@ -51,7 +51,7 @@ class GetQuote extends React.Component {
     this.state = {
       disableAll: false,
       quotedList: [],
-      isReissue:false,
+      isReissue: false,
       benefiaryData: [
         {
           name: "",
@@ -107,13 +107,18 @@ class GetQuote extends React.Component {
       policyCity: "",
       policyPostalCode: "",
       policyNumber: "",
+      isEdit:false,
       policyAddress: "",
       superVisa: false,
       policyBeneficiary: "",
       showPolicyDob: false,
       disableAll: false,
-      plans:[],
-      policyBackUp: []
+      plans: [],
+      policyBackUp: [],
+      insuraceType: 1,
+      studentPolicyOptions: "",
+      studentPolicy: [],
+      planName:""
     };
   }
 
@@ -126,7 +131,7 @@ class GetQuote extends React.Component {
       if (this.props.navigation.state.params.isCopy) {
         this.copyQuote(this.props.navigation.state.params.id)
       } else {
-        await this.getQuoteByID();
+        await this.getQuoteByID(this.props.navigation.state.params.isEdit);
       }
     }
     // ModalAlert.hideAll()
@@ -136,8 +141,8 @@ class GetQuote extends React.Component {
     let modal = ModalAlert.createProgressModal("Please wait...", false);
     SSOServices.getQuoteById(this.props.navigation.state.params.id)
       .then((res) => {
-        if(this.props.navigation.state.params.isReissue){
-          this.calculateBeneficiaryData(res,true);
+        if (this.props.navigation.state.params.isReissue) {
+          this.calculateBeneficiaryData(res, true);
           this.setState({
             policyName: res.data.getquoteData.policy_holder_name,
             policyDob: res.data.getquoteData.policy_holder_dob,
@@ -147,11 +152,11 @@ class GetQuote extends React.Component {
             policyAddress: res.data.getquoteData.policy_holder_address,
             policyNumber: res.data.getquoteData.policy_holder_phone,
             policyBeneficiary: res.data.getquoteData.policy_holder_beneficiary,
-            isReissue : true
-      
+            isReissue: true
+
           })
-        }else{
-          this.calculateBeneficiaryData(res,false);
+        } else {
+          this.calculateBeneficiaryData(res, false);
 
         }
 
@@ -208,6 +213,37 @@ class GetQuote extends React.Component {
     );
   };
 
+
+
+
+  calculateTableDataSTC = (list, benefiaryData) => {
+    let quoteList = [];
+
+    for (let index = 0; index < list.length; index++) {
+      let ele = list[index];
+
+
+        let obj = {
+          user_name: ele[0],
+          plan_name: ele[1],
+          pre: ele[2],
+        };
+        quoteList.push(obj);
+
+    }
+
+
+
+    this.setState(
+      {
+        quotedList: quoteList,
+      },
+      () => {
+        this.calculateTotalAmountSTC();
+      }
+    );
+  };
+
   selectPlanId = (id) => {
     let list = [...this.state.plans];
     let active = -1;
@@ -229,46 +265,83 @@ class GetQuote extends React.Component {
     );
   };
 
-  getQuoteByID = () => {
+  getQuoteByID = (status) => {
     if (this.props.navigation.state.params.id) {
       let modal = ModalAlert.createProgressModal("Fetching Data...", false);
       SSOServices.getQuoteById(this.props.navigation.state.params.id)
         .then((res) => {
-          this.calculateTableData(res.data.getquoteData.tableData, res.data);
 
-          this.setState({
-            familyCoverage: res.data.getquoteData.family_coverage === 1,
-            superVisa: res.data.getquoteData.super_visa === 1,
-            id: res.data.getquoteData.id,
-            user_id: res.data.getquoteData.policy_holder_beneficiary,
-            showPolicyHolderData: true,
-            deductible: res.data.getquoteData.deductible_id,
-            disableAll: true,
-            fromDate: res.data.getquoteData.first_date_of_cover,
-            lastDate: res.data.getquoteData.last_date_of_cover,
-            planType: res.data.getquoteData.plan_id,
-            duration: res.data.getquoteData.duration.toString(),
-            departureDate: res.data.getquoteData.arrival_date,
-            paymentFrequency: res.data.getquoteData.payment_frequency,
-            policyLimit: res.data.getquoteData.policy_limit.toString(),
-            policyName: res.data.getquoteData.policy_holder_name,
-            policyDob: res.data.getquoteData.policy_holder_dob,
-            policyEmail: res.data.getquoteData.policy_holder_email,
-            policyCity: res.data.getquoteData.policy_holder_city,
-            policyPostalCode: res.data.getquoteData.policy_holder_postal_code,
-            policyAddress: res.data.getquoteData.policy_holder_address,
-            policyNumber: res.data.getquoteData.policy_holder_phone,
-            policyBeneficiary: res.data.getquoteData.policy_holder_beneficiary,
-          }, () => {
-            this.forceUpdate()
-          });
+          if (res.data.getquoteData.product == "STC") {
+            this.setState({
+              insuraceType: 2,
+              disableAll: !status,
+              isEdit:status,
+              id: res.data.getquoteData.id,
+              fromDate: res.data.getquoteData.first_date_of_cover,
+              lastDate: res.data.getquoteData.last_date_of_cover,
+              planType: res.data.getquoteData.plan_id,
+              duration: res.data.getquoteData.duration.toString(),
+              departureDate: res.data.getquoteData.arrival_date,
+              showPolicyHolderData: true,
+              policyLimit: res.data.getquoteData.policy_limit.toString(),
+              policyName: res.data.getquoteData.policy_holder_name,
+              policyDob: res.data.getquoteData.policy_holder_dob,
+              policyEmail: res.data.getquoteData.policy_holder_email,
+              policyCity: res.data.getquoteData.policy_holder_city,
+              policyPostalCode: res.data.getquoteData.policy_holder_postal_code,
+              policyAddress: res.data.getquoteData.policy_holder_address,
+              policyNumber: res.data.getquoteData.policy_holder_phone,
+              policyBeneficiary: res.data.getquoteData.policy_holder_beneficiary,
+              studentPolicyOptions : res.data.getquoteData.student_policy_option,
+            })
+
+            this.calculateTableDataSTC(res.data.getquoteData.tableData, res.data);
+            this.calculateWaitingPeriod(res.data.getquoteData.arrival_date, false);
+
+            this.calculateBeneficiaryData(res, false);
+            this.selectPlanId(res.data.getquoteData.plan_id);
+          } else {
+
+            this.calculateTableData(res.data.getquoteData.tableData, res.data);
+
+            this.setState({
+              familyCoverage: res.data.getquoteData.family_coverage === 1,
+              superVisa: res.data.getquoteData.super_visa === 1,
+              id: res.data.getquoteData.id,
+              insuraceType: 1,
+              user_id: res.data.getquoteData.policy_holder_beneficiary,
+              showPolicyHolderData: true,
+              deductible: res.data.getquoteData.deductible_id,
+              disableAll: !status,
+              fromDate: res.data.getquoteData.first_date_of_cover,
+              lastDate: res.data.getquoteData.last_date_of_cover,
+              isEdit:status,
+              planType: res.data.getquoteData.plan_id,
+              duration: res.data.getquoteData.duration.toString(),
+              departureDate: res.data.getquoteData.arrival_date,
+              paymentFrequency: res.data.getquoteData.payment_frequency,
+              policyLimit: res.data.getquoteData.policy_limit.toString(),
+              policyName: res.data.getquoteData.policy_holder_name,
+              policyDob: res.data.getquoteData.policy_holder_dob,
+              policyEmail: res.data.getquoteData.policy_holder_email,
+              policyCity: res.data.getquoteData.policy_holder_city,
+              policyPostalCode: res.data.getquoteData.policy_holder_postal_code,
+              policyAddress: res.data.getquoteData.policy_holder_address,
+              policyNumber: res.data.getquoteData.policy_holder_phone,
+              policyBeneficiary: res.data.getquoteData.policy_holder_beneficiary,
+            }, () => {
+              this.forceUpdate()
+            });
 
 
-          this.calculateWaitingPeriod(res.data.getquoteData.arrival_date, false);
+            this.calculateWaitingPeriod(res.data.getquoteData.arrival_date, false);
 
-          this.calculateBeneficiaryData(res,false);
+            this.calculateBeneficiaryData(res, false);
 
-          this.selectPlanId(res.data.getquoteData.plan_id);
+            this.selectPlanId(res.data.getquoteData.plan_id);
+
+          }
+
 
           ModalAlert.hide(modal);
         })
@@ -279,7 +352,8 @@ class GetQuote extends React.Component {
     }
   };
 
-  calculateBeneficiaryData = (res,status) => {
+  calculateBeneficiaryData = (res, status) => {
+
     let list = [];
     try {
 
@@ -292,7 +366,7 @@ class GetQuote extends React.Component {
 
         let obj = {
           isChecked: false,
-          status:status,
+          status: status,
           id: res.data.insured_data[index].id,
           name: res.data.insured_data[index].insured_name,
           gender: res.data.insured_data[index].insured_gender,
@@ -322,18 +396,16 @@ class GetQuote extends React.Component {
 
       });
     } catch (error) {
-
       for (let index = 0; index < res.data.insured_data.length; index++) {
         let age = this.calculateAge(
           res.data.insured_data[index].insured_DOB
         );
 
-        let questions = res.data.getquoteData.spouses_questionary[index]
 
         let obj = {
           isChecked: false,
           id: res.data.insured_data[index].id,
-          status:status,
+          status: status,
           name: res.data.insured_data[index].insured_name,
           gender: res.data.insured_data[index].insured_gender,
           dob: res.data.insured_data[index].insured_DOB,
@@ -359,6 +431,112 @@ class GetQuote extends React.Component {
         console.log("Benefiarcy Data", this.state.benefiaryData);
 
       });
+    }
+  }
+
+
+  onPressGetQuote_stc = () => {
+    if (this.validatePolicyHolderDetails()) {
+      let loader = ModalAlert.createProgressModal("Please wait...", false);
+      let formData = new FormData()
+      let list = [];
+      for (let index = 0; index < this.state.benefiaryData.length; index++) {
+        formData.append(
+          "insured_gender[]",
+          this.state.benefiaryData[index].gender.charAt(0).toUpperCase() + this.state.benefiaryData[index].gender.slice(1)
+        );
+        formData.append(
+          "benificiary_name[]",
+          this.state.benefiaryData[index].bName
+        );
+        formData.append(
+          "benificiary_relation[]",
+          this.state.benefiaryData[index].bRelation
+        );
+        formData.append(
+          "benificiary_dob[]",
+          this.state.benefiaryData[index].bDob
+        );
+
+        formData.append("supposes[" + index + "]", (index + 1) + "");
+        formData.append(
+          "user_name[]",
+          this.state.benefiaryData[index].name
+        );
+        formData.append(
+          "date_of_birth[]",
+          this.state.benefiaryData[index].dob
+        );
+      }
+
+
+
+      formData.append("quote_amount", this.state.totalAmount);
+      formData.append("first_date_of_cover", this.state.fromDate);
+      formData.append("last_date_of_cover", this.state.lastDate);
+      formData.append("policy_limit", this.state.policyLimit);
+      formData.append("arrival_date", this.state.departureDate);
+      formData.append("duration", this.state.duration);
+      formData.append("plan_id", this.state.planType);
+
+      formData.append("extend_policy_id", 0);
+
+
+      formData.append("student_plan_option", this.state.studentPolicyOptions);
+
+      formData.append("policy_holder_name", this.state.policyName);
+      formData.append("policy_holder_dob", this.state.policyDob);
+      formData.append("policy_holder_email", this.state.policyEmail);
+      formData.append("policy_holder_city", this.state.policyCity);
+      formData.append("policy_holder_postal_code", this.state.policyPostalCode);
+      formData.append("policy_holder_phone", this.state.policyNumber);
+      formData.append("policy_holder_address", this.state.policyAddress);
+
+      formData.append("Waiting_period", this.state.waitingPeriod);
+
+      formData.append("extend_policy_id", 0);
+      formData.append("country_id", 1);
+      formData.append("province_id", 1);
+      formData.append(
+        "elegibility_question",
+        "<p><strong>To be eligible for coverage, on the effective date, you must :</strong> <p>1. Be a visitor to Canada or a person in Canada under a valid work or student visa, a Canadian or an immigrant not eligible for benefits under a government health insurance plan; and <br> 2. be at least 15 days of age and less than 90 years of age (less than 70 year of age for Premium plan); and <br> 3. not be travelling against the advice of a physician and/or not have been diagnosed with a terminal illness; and <br> 4. not be experiencing new or undiagnosed signs or symptoms and/or know of any reason to seek medical attention; and <br> 5. not require assistance with the activities of daily living(dressing, bathing, eating, using the toilet or getting in or out of a bed or chair).<br><strong>I confirm that all travellers are eligible to purchase this policy</strong></p>"
+      );
+      formData.append("user_id", this.props.userData.user_id);
+
+      for (let index = 0; index < this.state.quotedList.length; index++) {
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].user_name
+        );
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].plan_name
+        );
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].pre
+        );
+      }
+
+      console.log(formData)
+
+      SSOServices.saveQuoteSTC(formData)
+        .then((res) => {
+          ModalAlert.hide(loader);
+
+          let modalAl = Modal.createModal({ text: '' }, { text: res.msg }, true, Modal.createSecondaryButton('Ok', () => {
+            this.props.navigation.goBack();
+            Modal.hide(modalAl)
+          }))
+
+        })
+        .catch((err) => {
+          ModalAlert.hide(loader);
+          console.log(err)
+          if (err.message) {
+            ModalAlert.error(err.message);
+          }
+        });
     }
   }
 
@@ -431,6 +609,7 @@ class GetQuote extends React.Component {
       formData.append("policy_limit", this.state.policyLimit);
       formData.append("arrival_date", this.state.departureDate);
       formData.append("duration", this.state.duration);
+      formData.append("user_id", this.props.userData.user_id);
       formData.append("plan_id", this.state.planType);
       formData.append("family_coverage", this.state.familyCoverage ? "1" : "0");
       formData.append("payment_frequency", this.state.paymentFrequency);
@@ -526,7 +705,7 @@ class GetQuote extends React.Component {
   };
 
   getPlan = () => {
-    let modal = ModalAlert.createProgressModal("Please wait...",false)
+    let modal = ModalAlert.createProgressModal("Please wait...", false)
     SSOServices.getPlan()
       .then((res) => {
         let arr = [];
@@ -566,7 +745,7 @@ class GetQuote extends React.Component {
         }
         this.setState({
           deductibleData: data,
-          deductible : res.data[0].deductible_id
+          deductible: res.data[0].deductible_id
         });
         if (this.props.navigation.state.params.id) {
           this.setState({
@@ -586,7 +765,8 @@ class GetQuote extends React.Component {
         }
         this.setState({
           policyData: data,
-          policyBackUp : data
+          policyBackUp: data,
+          studentPolicy: [{ label: "CAD 2000000", value: "2000000" }]
         });
       })
       .catch((err) => { });
@@ -651,85 +831,150 @@ class GetQuote extends React.Component {
 
 
   onPressYes = () => {
-    if (this.isValidate()) {
-      formData = new FormData();
+    formData = new FormData();
 
-      let modal = ModalAlert.createProgressModal("Please wait...", false);
+    let modal = ModalAlert.createProgressModal("Please wait...", false);
 
-      this.setState({
-        showPolicyHolderData: false
-      })
-      let dobs = [];
-      let userNames = [];
-      let questionaries = [];
+    this.setState({
+      showPolicyHolderData: false
+    })
+    let dobs = [];
+    let userNames = [];
+    let questionaries = [];
 
-      for (let index = 0; index < this.state.benefiaryData.length; index++) {
-        formData.append(
-          "user_name[" + index + "]",
-          this.state.benefiaryData[index].name
-        );
-        formData.append(
-          "date_of_birth[" + index + "]",
-          this.state.benefiaryData[index].dob
-        );
+    for (let index = 0; index < this.state.benefiaryData.length; index++) {
+      formData.append(
+        "user_name[" + index + "]",
+        this.state.benefiaryData[index].name
+      );
+      formData.append(
+        "date_of_birth[" + index + "]",
+        this.state.benefiaryData[index].dob
+      );
 
-        dobs.push(this.state.benefiaryData[index].dob);
-        userNames.push(this.state.benefiaryData[index].name);
-        if (parseInt(this.state.benefiaryData[index].age) > 74 && parseInt(this.state.benefiaryData[index].age) > 85) {
-          formData.append("questionary_status[" + index + "]", "1");
-        } else {
-          formData.append("questionary_status[" + index + "]", "0");
-        }
+      dobs.push(this.state.benefiaryData[index].dob);
+      userNames.push(this.state.benefiaryData[index].name);
+      if (parseInt(this.state.benefiaryData[index].age) > 74 && parseInt(this.state.benefiaryData[index].age) > 85) {
+        formData.append("questionary_status[" + index + "]", "1");
+      } else {
+        formData.append("questionary_status[" + index + "]", "0");
       }
-
-      formData.append("duration", parseInt(this.state.duration));
-      formData.append("plan_id", this.state.planType);
-      formData.append("coverage", this.state.policyLimit);
-      formData.append("deductible_id", this.state.deductible);
-      formData.append("family_coverage", this.state.familyCoverage ? 1 : 0);
-      formData.append("super_visa", this.state.superVisa ? 1 : 0);
-      formData.append("payment_frequency", this.state.paymentFrequency);
-      formData.append("country_id", 1);
-      formData.append("extend", 0);
-
-      SSOServices.calculatePremium(formData)
-        .then((res) => {
-          ModalAlert.hide(modal);
-
-          let list = res.data;
-
-
-          if (res.status) {
-            this.formPolicyHolderList(this.state.benefiaryData)
-            this.calculateQuestionary(list, this.state.benefiaryData)
-
-          } else {
-            ModalAlert.error(res.status);
-          }
-        })
-        .catch((err) => {
-
-          ModalAlert.hide(modal);
-          Modal.alert(err.msg)
-        });
     }
+
+    formData.append("duration", parseInt(this.state.duration));
+    formData.append("plan_id", this.state.planName);
+    formData.append("coverage", this.state.policyLimit);
+    formData.append("deductible_id", this.state.deductible);
+    formData.append("family_coverage", this.state.familyCoverage ? 1 : 0);
+    formData.append("super_visa", this.state.superVisa ? 1 : 0);
+    formData.append("payment_frequency", this.state.paymentFrequency);
+    formData.append("country_id", 1);
+    formData.append("extend", 0);
+
+    SSOServices.calculatePremium(formData)
+      .then((res) => {
+        ModalAlert.hide(modal);
+
+        let list = res.data;
+
+
+        if (res.status) {
+          this.formPolicyHolderList(this.state.benefiaryData)
+          this.calculateQuestionary(list, this.state.benefiaryData)
+
+        } else {
+          ModalAlert.error(res.status);
+        }
+      })
+      .catch((err) => {
+
+        ModalAlert.hide(modal);
+        Modal.alert(err.msg)
+      });
+  };
+
+
+  onPressStudent = () => {
+
+    Modal.hideAll()
+    formData = new FormData();
+
+    let modal = ModalAlert.createProgressModal("Please wait...", false);
+
+    this.setState({
+      showPolicyHolderData: false
+    })
+    let dobs = [];
+    let userNames = [];
+    let questionaries = [];
+
+    for (let index = 0; index < this.state.benefiaryData.length; index++) {
+      formData.append(
+        "user_name[]",
+        this.state.benefiaryData[index].name
+      );
+    }
+
+    formData.append("duration", parseInt(this.state.duration));
+    formData.append("plan_id", this.state.planName);
+
+    formData.append("user_id", this.props.userData.user_id);
+    formData.append("student_plan_option", this.state.studentPolicyOptions);
+    SSOServices.calculatePremiumForStudent(formData)
+      .then((res) => {
+        ModalAlert.hide(modal);
+
+        let list = res.data;
+
+
+        if (res.status) {
+          this.formPolicyHolderList(this.state.benefiaryData)
+          this.calculateQuestionary(list, this.state.benefiaryData)
+
+        } else {
+          ModalAlert.error(res.message);
+        }
+      })
+      .catch((err) => {
+
+        ModalAlert.hide(modal);
+        Modal.alert(err.message)
+      });
+  }
+
+  
+  calculateTotalAmountSTC = () => {
+    let total = 0;
+
+    let list =[...this.state.quotedList]
+
+      for (let index = 0; index < list.length; index++) {
+        total +=parseInt(list[index].pre)
+      }
+  
+      this.setState({
+        totalAmount: total,
+      });
+   
   };
 
   calculateTotalAmount = () => {
     let total = 0;
-    for (let index = 0; index < this.state.quotedList.length; index++) {
-      if (this.state.quotedList[index].status === "pre") {
-        total += parseInt(this.state.quotedList[index].pre);
-      }
 
-      if (this.state.quotedList[index].status === "non_pre") {
-        total += parseInt(this.state.quotedList[index].no_pre);
+      for (let index = 0; index < this.state.quotedList.length; index++) {
+        if (this.state.quotedList[index].status === "pre") {
+          total += parseInt(this.state.quotedList[index].pre);
+        }
+  
+        if (this.state.quotedList[index].status === "non_pre") {
+          total += parseInt(this.state.quotedList[index].no_pre);
+        }
       }
-    }
-
-    this.setState({
-      totalAmount: total,
-    });
+  
+      this.setState({
+        totalAmount: total,
+      });
+   
   };
 
   isValidate = () => {
@@ -806,8 +1051,104 @@ class GetQuote extends React.Component {
     return true;
   };
 
+
+
+
+
+  isValidateStudent = () => {
+    ModalAlert.hideAll();
+    if (this.state.fromDate == "") {
+      ModalAlert.error("Select first date of cover");
+      return false;
+    }
+
+    if (this.state.lastDate == "") {
+      ModalAlert.error("Select last date of cover");
+      return false;
+    }
+
+    if (
+      parseInt(this.state.duration) == 0 ||
+      parseInt(this.state.duration) > 366
+    ) {
+      ModalAlert.error("Not applicable for more than 366 days");
+      return false;
+    }
+
+    if (this.state.departureDate == "") {
+      ModalAlert.error("Departure from country of origin must be provided");
+      return false;
+    }
+
+    if (this.state.benefiaryData[0].name == "") {
+      ModalAlert.error("Enter insured person name");
+      return false;
+    }
+    if (this.state.benefiaryData[0].dob == "") {
+      ModalAlert.error("Select insured person dob");
+      return false;
+    }
+
+    if (this.state.planType == "") {
+      ModalAlert.error("Select plan type");
+      return false;
+    }
+
+
+    if (this.state.policyLimit == "") {
+      ModalAlert.error("Select Policy limit");
+      return false;
+    }
+
+    if (this.state.studentPolicyOptions == "") {
+      ModalAlert.error("Select Student Policy Options");
+      return false;
+    }
+
+
+
+    for (let index = 0; index < this.state.benefiaryData.length; index++) {
+      let item = this.state.benefiaryData[index];
+      if (item.name == null || item.name == "") {
+        ModalAlert.error("Please fill all insured detail");
+        return false;
+      }
+
+      if (item.dob == null || item.dob == "") {
+        ModalAlert.error("Please fill all insured detail");
+        return false;
+      }
+
+      if (parseInt(item.age) > 89) {
+        ModalAlert.error("Insured person Age should be lessar than 89");
+        return false;
+      }
+      if (item.gender == null || item.gender == "") {
+        ModalAlert.error("Please fill all insured detail");
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+
+
   getEligibleCoverage = () => {
-    ModalAlert.createOptionModal(this.getEligibleComponent(), true);
+
+
+    if (this.state.insuraceType == 1) {
+      if (this.isValidate()) {
+        ModalAlert.createOptionModal(this.getEligibleComponent(), true);
+      }
+    } else {
+      if (this.isValidateStudent()) {
+        ModalAlert.createOptionModal(this.getEligibleComponent(), true);
+      }
+    }
+
+
+
   };
 
   getEligibleComponent = () => {
@@ -849,7 +1190,7 @@ class GetQuote extends React.Component {
             }}
           >
             <TouchableOpacity
-              onPress={() => this.onPressYes()}
+              onPress={() => this.state.insuraceType == 1 ? this.onPressYes() : this.onPressStudent()}
               style={{
                 backgroundColor: "white",
                 paddingBottom: 10,
@@ -1201,62 +1542,90 @@ class GetQuote extends React.Component {
 
     let date = getDateStringFromDate(value);
     let list = [...this.state.benefiaryData];
+
+
+
     if (status == 1) {
-      let date2 = moment(date);
-      let date3 = moment(moment().format("YYYY-MM-DD"));
-      let duration = date3.diff(date2, "years");
+
+      if (this.state.insuraceType == 1) {
+        let date2 = moment(date);
+        let date3 = moment(moment().format("YYYY-MM-DD"));
+        let duration = date3.diff(date2, "years");
 
 
-      if (duration > 74 && duration < 85) {
-        if (list[index].finalQuestionary[0].is_questionary_yes == "1") {
-          let modal = ModalAlert.createModal({ title: 'Alert' }, { title: "Do you want to reset the questionaries?" },
-            ModalAlert.createPrimaryButton({ title: 'Yes' }, () => {
-              list[this.state.dobIndex].finalQuestionary[0].querstionary = ["", "", "", "", "", "", "", "", "", "", ""]
+        if (duration > 74 && duration < 85) {
+          if (list[index].finalQuestionary[0].is_questionary_yes == "1") {
+            let modal = ModalAlert.createModal({ title: 'Alert' }, { title: "Do you want to reset the questionaries?" },
+              ModalAlert.createPrimaryButton({ title: 'Yes' }, () => {
+                list[this.state.dobIndex].finalQuestionary[0].querstionary = ["", "", "", "", "", "", "", "", "", "", ""]
 
-              this.setState({
-                showBDate: false,
-                benefiaryData: list
-              }, () => {
-                ModalAlert.hide(modal)
-                ModalAlert.createOptionModal(this.getAgePopup(this.state.dobIndex, duration, date), true, 'white')
-              });
-            }), ModalAlert.createSecondaryButton({ title: 'No' }, () => {
-              list[this.state.dobIndex].dob = date;
-              list[this.state.dobIndex].finalQuestionary[0].is_questionary_yes = 1
-              list[this.state.dobIndex].finalQuestionary[0].querstionary = list[this.state.dobIndex].finalQuestionary[0].querstionary
-              list[this.state.dobIndex].age = duration.toString();
+                this.setState({
+                  showBDate: false,
+                  benefiaryData: list
+                }, () => {
+                  ModalAlert.hide(modal)
+                  ModalAlert.createOptionModal(this.getAgePopup(this.state.dobIndex, duration, date), true, 'white')
+                });
+              }), ModalAlert.createSecondaryButton({ title: 'No' }, () => {
+                list[this.state.dobIndex].dob = date;
+                list[this.state.dobIndex].finalQuestionary[0].is_questionary_yes = 1
+                list[this.state.dobIndex].finalQuestionary[0].querstionary = list[this.state.dobIndex].finalQuestionary[0].querstionary
+                list[this.state.dobIndex].age = duration.toString();
 
-              this.setState({
-                benefiaryData: list,
-                showBDate: false,
-                showPolicyHolderData: false
-              }, () => {
-                ModalAlert.hide(modal)
-              });
-            }))
-        } else {
-          this.setState({
-            showBDate: false,
-          }, () => {
+                this.setState({
+                  benefiaryData: list,
+                  showBDate: false,
+                  showPolicyHolderData: false
+                }, () => {
+                  ModalAlert.hide(modal)
+                });
+              }))
+          } else {
+            this.setState({
+              showBDate: false,
+            }, () => {
 
-            ModalAlert.createOptionModal(this.getAgePopup(this.state.dobIndex, duration, date), false)
-          });
-          return
+              ModalAlert.createOptionModal(this.getAgePopup(this.state.dobIndex, duration, date), false)
+            });
+            return
+          }
+
+
         }
 
 
+        list[this.state.dobIndex].dob = date;
+        list[this.state.dobIndex].finalQuestionary[0].is_questionary_yes = 0
+        list[this.state.dobIndex].age = duration.toString();
+
+        this.setState({
+          benefiaryData: list,
+          showBDate: false,
+          showPolicyHolderData: false
+        });
+      } else {
+        let date2 = moment(date);
+        let date3 = moment(moment().format("YYYY-MM-DD"));
+        let duration = date3.diff(date2, "years");
+
+        if (duration >= 0 && duration < 65) {
+
+          list[this.state.dobIndex].dob = date;
+          list[this.state.dobIndex].finalQuestionary[0].is_questionary_yes = 0
+          list[this.state.dobIndex].age = duration.toString();
+
+          this.setState({
+            benefiaryData: list,
+            showBDate: false,
+            showPolicyHolderData: false
+          });
+        } else {
+          ModalAlert.error("Eligible for coverage must be at least 15 days old and less than 65 years of age")
+
+        }
+
       }
 
-
-      list[this.state.dobIndex].dob = date;
-      list[this.state.dobIndex].finalQuestionary[0].is_questionary_yes = 0
-      list[this.state.dobIndex].age = duration.toString();
-
-      this.setState({
-        benefiaryData: list,
-        showBDate: false,
-        showPolicyHolderData: false
-      });
 
     } else {
       list[this.state.dobIndex].bDob = date;
@@ -1475,6 +1844,7 @@ class GetQuote extends React.Component {
     this.setState(
       {
         activeIndex: index,
+        planName: item.plan_name,
         planType: item.plan_id,
         showPolicyHolderData: false
       },
@@ -1536,20 +1906,20 @@ class GetQuote extends React.Component {
 
       let duration = date3.diff(date2, "days") + 1;
 
-      if(this.state.isReissue){
+      if (this.state.isReissue) {
         if (parseInt(duration) > 180) {
           ModalAlert.alert("Duration should be 180 days for Reissue.")
-        }else{
+        } else {
           this.setState({
             duration: duration.toString(),
             durationInt: duration,
             lastDate: date,
             showPicker: false,
             showPolicyHolderData: false
-  
+
           });
         }
-      }else{
+      } else {
         if (parseInt(duration) > 365) {
           ModalAlert.alert("Duration should be 365 days.")
         } else {
@@ -1559,12 +1929,12 @@ class GetQuote extends React.Component {
             lastDate: date,
             showPicker: false,
             showPolicyHolderData: false
-  
+
           });
         }
       }
 
-    
+
     }
   };
 
@@ -1577,6 +1947,7 @@ class GetQuote extends React.Component {
     if (duration == 0) {
       this.setState({
         departureDate: date,
+        waitingPeriod: "NA",
         showPicker: false,
       });
       return;
@@ -1590,6 +1961,17 @@ class GetQuote extends React.Component {
     }
 
     let duration2 = date2.diff(date4, "days");
+
+    if (this.state.insuraceType == 2) {
+      this.setState({
+        waitingPeriod: "5 Days",
+        departureDate: date,
+        showPicker: false,
+      });
+      return;
+    }
+
+
 
     // if(duration2 == 0){
     //     ModalAlert.error("Waiting Period not applicable for this package.")
@@ -1628,25 +2010,25 @@ class GetQuote extends React.Component {
     let date = getDateStringFromDate(data);
 
     switch (this.state.pickerStatus) {
-      case 1:{
+      case 1: {
 
 
-        if(this.state.isReissue){
+        if (this.state.isReissue) {
           var d1 = new Date();
           let date2 = moment(d1);
           let date3 = moment(date);
-    
+
           let duration = date3.diff(date2, "days");
-          if(duration < 0){
+          if (duration < 0) {
             ModalAlert.alert("Previous dates are not allowed")
-          }else{
+          } else {
             this.setState({
               fromDate: date,
               showPicker: false,
               showPolicyHolderData: false
             });
           }
-        }else{
+        } else {
           this.setState({
             fromDate: date,
             showPicker: false,
@@ -1655,7 +2037,7 @@ class GetQuote extends React.Component {
         }
         break;
       }
-        
+
       case 2:
         this.calculateDuration(date);
         break;
@@ -1768,17 +2150,17 @@ class GetQuote extends React.Component {
         (dd.toString().length == 1 ? "0" + dd : dd);
 
 
-        if(!this.state.superVisa){
-          let data = [...this.state.policyData]
-          data.splice(0,2)
-          this.setState({
-            policyData : data
-          })
-        }else{
-          this.setState({
-            policyData : this.state.policyBackUp
-          })
-        }
+      if (!this.state.superVisa) {
+        let data = [...this.state.policyData]
+        data.splice(0, 2)
+        this.setState({
+          policyData: data
+        })
+      } else {
+        this.setState({
+          policyData: this.state.policyBackUp
+        })
+      }
 
       this.setState({
         superVisa: !this.state.superVisa,
@@ -1862,31 +2244,31 @@ class GetQuote extends React.Component {
   calculateFirstAndLastDate = () => {
     if (this.state.duration) {
 
-      if(this.state.isReissue){
+      if (this.state.isReissue) {
         var someDate = new Date();
         var fromDate = moment().format("YYYY-MM-DD");
         var numberOfDaysToAdd = parseInt(this.state.duration);
         someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
 
-        if(numberOfDaysToAdd > 180){
+        if (numberOfDaysToAdd > 180) {
           ModalAlert.alert("Duration should be 180 days for Reissue.")
-        }else{
+        } else {
           var someDate = new Date();
           var fromDate = moment().format("YYYY-MM-DD");
           var numberOfDaysToAdd = parseInt(this.state.duration);
           someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
-    
+
           var dd = someDate.getDate();
           var mm = someDate.getMonth() + 1;
           var y = someDate.getFullYear();
-    
+
           var someFormattedDate =
             y +
             "-" +
             (mm.toString().length == 1 ? "0" + mm : mm) +
             "-" +
             (dd.toString().length == 1 ? "0" + dd : dd);
-    
+
           this.setState({
             fromDate,
             lastDate: someFormattedDate,
@@ -1894,23 +2276,23 @@ class GetQuote extends React.Component {
           });
         }
 
-      }else{
+      } else {
         var someDate = new Date();
         var fromDate = moment().format("YYYY-MM-DD");
         var numberOfDaysToAdd = parseInt(this.state.duration);
         someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
-  
+
         var dd = someDate.getDate();
         var mm = someDate.getMonth() + 1;
         var y = someDate.getFullYear();
-  
+
         var someFormattedDate =
           y +
           "-" +
           (mm.toString().length == 1 ? "0" + mm : mm) +
           "-" +
           (dd.toString().length == 1 ? "0" + dd : dd);
-  
+
         this.setState({
           fromDate,
           lastDate: someFormattedDate,
@@ -1918,7 +2300,7 @@ class GetQuote extends React.Component {
         });
       }
 
-     
+
     }
   };
 
@@ -1926,7 +2308,7 @@ class GetQuote extends React.Component {
     return (
       <SafeAreaView style={{ flex: 1 }}>
         <ToolBarComponent
-          title={"Quick Quote"}
+          title={this.state.isEdit ? "Edit Quote" : "Quick Quote"}
           navigation={this.props.navigation}
         />
 
@@ -2111,7 +2493,99 @@ class GetQuote extends React.Component {
               />
             </View>
 
-            <View
+
+            <View>
+
+              <Text
+                style={{ marginStart: 20, fontSize: 20, marginTop: 20, fontWeight: "bold" }}>
+                Select Product</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignSelf: "center",
+                  marginTop: 10,
+                }}>
+                <TouchableOpacity
+                  onPress={() => this.setState({ insuraceType: 1 })}
+                  disabled={this.state.disableAll}
+                  style={{
+                    padding: 10,
+                    width: "44%",
+                    borderRadius: 10,
+                    backgroundColor: this.state.insuraceType == 1 ? "#24b6b7" : "white",
+                    borderWidth: 2,
+                    borderColor: '#24b6b7',
+                  }}
+                >
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      color: this.state.insuraceType == 1 ? "white" : "black",
+                      fontWeight: "bold",
+                      fontSize: 16,
+                    }}
+                  >
+                    VTC Product
+                </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={() => this.setState({ insuraceType: 2 })}
+                  disabled={this.state.disableAll}
+                  style={{
+                    padding: 10,
+                    marginStart: 10,
+                    width: "44%",
+                    borderRadius: 10,
+                    borderWidth: 2,
+                    borderColor: '#24b6b7',
+                    backgroundColor: this.state.insuraceType == 2 ? "#24b6b7" : "white",
+                  }}
+                >
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      color: this.state.insuraceType == 2 ? "white" : "black",
+                      fontWeight: "bold",
+                      fontSize: 16,
+                    }}
+                  >
+                    Student Travel
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+
+
+            </View>
+
+
+            {this.state.insuraceType == 2 && <DropDownView
+              styles={{
+                width: "100%",
+                alignSelf: "center",
+                marginTop: 10,
+                marginStart: 10
+              }}
+              textstyles={{
+                marginStart: 20
+              }}
+              childData={[{
+                label: "International Student Policy - Single",
+                value: "Daily"
+              },
+              {
+                label: "International Student Policy - Annual",
+                value: "Annual"
+              }]}
+              value={this.state.studentPolicyOptions}
+              disabled={this.state.disableAll}
+              onItemSelected={(value) => this.setState({ studentPolicyOptions: value })}
+              dropDownTitle={"Student Policy Option"}
+            />}
+
+
+            {this.state.insuraceType == 1 && <View
               style={{ flexDirection: "row", justifyContent: "space-between" }}
             >
 
@@ -2164,13 +2638,13 @@ class GetQuote extends React.Component {
                     alignSelf: 'center',
                     fontSize: 20,
                     marginStart: 10,
-                    marginEnd:10
+                    marginEnd: 10
                   }}>Super Visa</Text>
                 </TouchableOpacity>
               </View>
-            </View>
+            </View>}
 
-            {this.state.superVisa && (
+            {(this.state.insuraceType == 1 && this.state.superVisa) && (
               <View style={{ marginStart: 15, marginTop: 15 }}>
                 <Text
                   style={{ marginStart: 10, fontWeight: "bold", fontSize: 18 }}
@@ -2239,7 +2713,7 @@ class GetQuote extends React.Component {
 
               <FlatList
                 data={this.state.plans}
-                style={{ width: "100%", marginStart: 16,marginEnd:10, alignSelf: "center" }}
+                style={{ width: "100%", marginStart: 16, marginEnd: 10, alignSelf: "center" }}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 renderItem={this.renderItemPremium}
@@ -2254,7 +2728,8 @@ class GetQuote extends React.Component {
                   marginStart: 10,
                   marginTop: 10,
                 }}
-                childData={this.state.policyData}
+                childData={this.state.insuraceType == 1 ? this.state.policyData
+                  : this.state.studentPolicy}
                 value={this.state.policyLimit}
                 disabled={this.state.disableAll}
                 onItemSelected={(value) =>
@@ -2262,7 +2737,7 @@ class GetQuote extends React.Component {
                 }
                 dropDownTitle={"Policy Limit"}
               />
-              <DropDownView
+              {this.state.insuraceType == 1 && <DropDownView
                 styles={{
                   width: "47%",
                   alignSelf: "flex-start",
@@ -2274,7 +2749,7 @@ class GetQuote extends React.Component {
                 disabled={this.state.disableAll}
                 onItemSelected={(value) => this.setState({ deductible: value })}
                 dropDownTitle={"Deductible"}
-              />
+              />}
             </View>
 
             <View
@@ -2283,8 +2758,7 @@ class GetQuote extends React.Component {
                 alignSelf: "center",
                 marginTop: 20,
                 marginBottom: 20,
-              }}
-            >
+              }}>
               <TouchableOpacity
                 onPress={() => this.onPressBenefit()}
                 style={{
@@ -2350,7 +2824,7 @@ class GetQuote extends React.Component {
                 <Text
                   style={{
                     textAlign: "center",
-                    flex:1,
+                    flex: 1,
                     color: "white",
                     fontSize: 14,
                   }}
@@ -2360,7 +2834,7 @@ class GetQuote extends React.Component {
                 <Text
                   style={{
                     textAlign: "center",
-                    flex:1,
+                    flex: 1,
                     color: "white",
                     fontSize: 14,
                   }}
@@ -2370,23 +2844,23 @@ class GetQuote extends React.Component {
                 <Text
                   style={{
                     textAlign: "center",
-                    flex:1,
+                    flex: 1,
                     color: "white",
                     fontSize: 14,
                   }}
                 >
                   With{"\n"}Pre-Existing
                 </Text>
-                <Text
+                {this.state.insuraceType == 1 && <Text
                   style={{
                     textAlign: "center",
-                    flex:1,
+                    flex: 1,
                     color: "white",
                     fontSize: 14,
                   }}
                 >
                   Without{"\n"}Pre-Existing
-                </Text>
+                </Text>}
               </View>
               <FlatList
                 renderItem={this.renderQuotedItem}
@@ -2447,7 +2921,7 @@ class GetQuote extends React.Component {
               >
 
                 {
-                  this.state.disableAll ? <View style={{ flex: 1, width:'50%', marginEnd: 10, marginTop: 20 }}>
+                  this.state.disableAll ? <View style={{ flex: 1, width: '50%', marginEnd: 10, marginTop: 20 }}>
                     <Text
                       style={{
                         marginStart: 10,
@@ -2671,11 +3145,11 @@ class GetQuote extends React.Component {
               </View> */}
               {!this.state.disableAll && (
                 <TouchableOpacity
-                  onPress={() => this.onPressGetQuote()}
+                  onPress={() => this.onPressSubmit()}
                   activeOpacity={0.7}
                   style={styles.containerBtn}
                 >
-                  <Text style={styles.title}>GET Quote</Text>
+                  <Text style={styles.title}>{this.state.isEdit? `Update Quote` : `GET Quote`}</Text>
                 </TouchableOpacity>
               )}
 
@@ -2707,6 +3181,7 @@ class GetQuote extends React.Component {
       firstDate: this.state.fromDate,
       paymentFrequency: this.state.paymentFrequency,
       id: this.state.id,
+      insuranceType : this.state.insuraceType
     };
 
     this.props.navigation.navigate("Payment", { data: obj });
@@ -2725,6 +3200,276 @@ class GetQuote extends React.Component {
     );
   };
 
+
+  onPressSubmit = () =>{
+    if(this.state.isEdit){
+      this.state.insuraceType == 1 ? this.onPressEditQuote() : this.onPressEditQuote_stc()
+    }else{
+      this.state.insuraceType == 1 ? this.onPressGetQuote() : this.onPressGetQuote_stc()
+    }
+  }
+
+  onPressEditQuote_stc = ()=>{
+    if (this.validatePolicyHolderDetails()) {
+      let loader = ModalAlert.createProgressModal("Please wait...", false);
+      let formData = new FormData()
+      let list = [];
+      for (let index = 0; index < this.state.benefiaryData.length; index++) {
+        formData.append(
+          "insured_gender[]",
+          this.state.benefiaryData[index].gender.charAt(0).toUpperCase() + this.state.benefiaryData[index].gender.slice(1)
+        );
+        formData.append(
+          "benificiary_name[]",
+          this.state.benefiaryData[index].bName
+        );
+        formData.append(
+          "benificiary_relation[]",
+          this.state.benefiaryData[index].bRelation
+        );
+        formData.append(
+          "benificiary_dob[]",
+          this.state.benefiaryData[index].bDob
+        );
+
+        formData.append("supposes[" + index + "]", (index + 1) + "");
+        formData.append(
+          "user_name[]",
+          this.state.benefiaryData[index].name
+        );
+        formData.append(
+          "date_of_birth[]",
+          this.state.benefiaryData[index].dob
+        );
+      }
+
+
+      formData.append("quote_id", this.state.id);
+      formData.append("quote_amount", this.state.totalAmount);
+      formData.append("first_date_of_cover", this.state.fromDate);
+      formData.append("last_date_of_cover", this.state.lastDate);
+      formData.append("policy_limit", this.state.policyLimit);
+      formData.append("arrival_date", this.state.departureDate);
+      formData.append("duration", this.state.duration);
+      formData.append("plan_id", this.state.planType);
+
+      formData.append("extend_policy_id", 0);
+
+
+      formData.append("student_plan_option", this.state.studentPolicyOptions);
+
+      formData.append("policy_holder_name", this.state.policyName);
+      formData.append("policy_holder_dob", this.state.policyDob);
+      formData.append("policy_holder_email", this.state.policyEmail);
+      formData.append("policy_holder_city", this.state.policyCity);
+      formData.append("policy_holder_postal_code", this.state.policyPostalCode);
+      formData.append("policy_holder_phone", this.state.policyNumber);
+      formData.append("policy_holder_address", this.state.policyAddress);
+
+      formData.append("Waiting_period", this.state.waitingPeriod);
+
+      formData.append("extend_policy_id", 0);
+      formData.append("country_id", 1);
+      formData.append("province_id", 1);
+      formData.append(
+        "elegibility_question",
+        "<p><strong>To be eligible for coverage, on the effective date, you must :</strong> <p>1. Be a visitor to Canada or a person in Canada under a valid work or student visa, a Canadian or an immigrant not eligible for benefits under a government health insurance plan; and <br> 2. be at least 15 days of age and less than 90 years of age (less than 70 year of age for Premium plan); and <br> 3. not be travelling against the advice of a physician and/or not have been diagnosed with a terminal illness; and <br> 4. not be experiencing new or undiagnosed signs or symptoms and/or know of any reason to seek medical attention; and <br> 5. not require assistance with the activities of daily living(dressing, bathing, eating, using the toilet or getting in or out of a bed or chair).<br><strong>I confirm that all travellers are eligible to purchase this policy</strong></p>"
+      );
+      formData.append("user_id", this.props.userData.user_id);
+
+      for (let index = 0; index < this.state.quotedList.length; index++) {
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].user_name
+        );
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].plan_name
+        );
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].pre
+        );
+      }
+
+      console.log(formData)
+
+      SSOServices.editQuoteSTC(formData)
+        .then((res) => {
+          ModalAlert.hide(loader);
+
+          let modalAl = Modal.createModal({ text: '' }, { text: res.msg }, true, Modal.createSecondaryButton('Ok', () => {
+            this.props.navigation.goBack();
+            Modal.hide(modalAl)
+          }))
+
+        })
+        .catch((err) => {
+          ModalAlert.hide(loader);
+          console.log(err)
+          if (err.message) {
+            ModalAlert.error(err.message);
+          }
+        });
+    }
+  }
+
+  onPressEditQuote = () => {
+    if (this.validatePolicyHolderDetails()) {
+      let loader = ModalAlert.createProgressModal("Please wait...", false);
+      let formData = new FormData()
+      let list = [];
+      for (let index = 0; index < this.state.benefiaryData.length; index++) {
+        formData.append(
+          "insured_gender[]",
+          this.state.benefiaryData[index].gender.charAt(0).toUpperCase() + this.state.benefiaryData[index].gender.slice(1)
+        );
+        formData.append(
+          "benificiary_name[]",
+          this.state.benefiaryData[index].bName
+        );
+        formData.append(
+          "benificiary_relation[]",
+          this.state.benefiaryData[index].bRelation
+        );
+        formData.append(
+          "benificiary_dob[]",
+          this.state.benefiaryData[index].bDob
+        );
+
+        formData.append("supposes[" + index + "]", index + 1);
+        formData.append(
+          "user_name[]",
+          this.state.benefiaryData[index].name
+        );
+        formData.append(
+          "date_of_birth[]",
+          this.state.benefiaryData[index].dob
+        );
+        if (this.state.benefiaryData[index].id) {
+          formData.append("insured_id[]", this.state.benefiaryData[index].id);
+        } else {
+          formData.append("insured_id[]", '');
+        }
+
+
+        if (this.state.benefiaryData[index].finalQuestionary[0].is_questionary_yes == 1) {
+          let question = this.state.benefiaryData[index].finalQuestionary[0].querstionary
+          formData.append("finalQuestionary[" + index + "][dob]", this.state.benefiaryData[index].dob)
+          formData.append("finalQuestionary[" + index + "][name]", this.state.benefiaryData[index].name)
+          formData.append("finalQuestionary[" + index + "][suppose_no]", (index + 1) + "")
+          formData.append("finalQuestionary[" + index + "][querstionary]", "[" + question[0] + "," + question[1] + "," + question[2] + "," + question[3] + "," + question[4] + "," + question[5] + "," + question[6] + "," + question[7] + "," + question[8] + "," + question[9] + "," + question[10] + "]")
+          formData.append("finalQuestionary[" + index + "][is_questionary_yes]", 1)
+
+
+        } else {
+          formData.append("finalQuestionary[" + index + "][dob]", this.state.benefiaryData[index].dob)
+          formData.append("finalQuestionary[" + index + "][name]", this.state.benefiaryData[index].name)
+          formData.append("finalQuestionary[" + index + "][suppose_no]", (index + 1) + "")
+          formData.append("finalQuestionary[" + index + "][querstionary]", "")
+          formData.append("finalQuestionary[" + index + "][is_questionary_yes]", 0)
+        }
+
+
+
+      }
+
+
+
+      formData.append("quote_id", this.state.id);
+      formData.append("quote_amount", this.state.totalAmount);
+      formData.append("first_date_of_cover", this.state.fromDate);
+      formData.append("last_date_of_cover", this.state.lastDate);
+      formData.append("policy_limit", this.state.policyLimit);
+      formData.append("arrival_date", this.state.departureDate);
+      formData.append("duration", this.state.duration);
+      formData.append("plan_id", this.state.planType);
+      formData.append("family_coverage", this.state.familyCoverage ? 1 : 0);
+      formData.append("payment_frequency", this.state.paymentFrequency);
+      formData.append("super_visa", this.state.superVisa ? 1 : 0);
+      formData.append("province_id", 1);
+      formData.append("deductible_id", this.state.deductible);
+      formData.append("policy_holder_name", this.state.policyName);
+      formData.append("policy_holder_dob", this.state.policyDob);
+      formData.append("policy_holder_email", this.state.policyEmail);
+      formData.append("policy_holder_city", this.state.policyCity);
+      formData.append("policy_holder_postal_code", this.state.policyPostalCode);
+      formData.append("policy_holder_phone", this.state.policyNumber);
+      formData.append("policy_holder_address", this.state.policyAddress);
+      formData.append("Waiting_period", this.state.waitingPeriod);
+
+
+      let del = this.state.delInsuredIds.slice(0, this.state.delInsuredIds.length - 1)
+
+
+
+
+      formData.append("del_insured_ids", del);
+      formData.append(
+        "policy_holder_benificiary",
+        this.state.policyBeneficiary
+      );
+      formData.append("extend_policy_id", 0);
+      formData.append("country_id", 1);
+      formData.append("extend", 0);
+      formData.append(
+        "elegibility_question",
+        "<p><strong>To be eligible for coverage, on the effective date, you must :</strong> <p>1. Be a visitor to Canada or a person in Canada under a valid work or student visa, a Canadian or an immigrant not eligible for benefits under a government health insurance plan; and <br> 2. be at least 15 days of age and less than 90 years of age (less than 70 year of age for Premium plan); and <br> 3. not be travelling against the advice of a physician and/or not have been diagnosed with a terminal illness; and <br> 4. not be experiencing new or undiagnosed signs or symptoms and/or know of any reason to seek medical attention; and <br> 5. not require assistance with the activities of daily living(dressing, bathing, eating, using the toilet or getting in or out of a bed or chair).<br><strong>I confirm that all travellers are eligible to purchase this policy</strong></p>"
+      );
+      formData.append("user_id", this.props.userData.user_id);
+
+      for (let index = 0; index < this.state.quotedList.length; index++) {
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].user_name
+        );
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].plan_name
+        );
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].pre
+        );
+        formData.append(
+          "tableData[" + index + "][]",
+          this.state.quotedList[index].no_pre
+        );
+
+        if (
+          this.state.quotedList[index].status === "pre") {
+          formData.append("getChecked[]", this.state.quotedList[index].pre);
+        }
+
+        if (this.state.quotedList[index].status === "non_pre") {
+          formData.append("getChecked[]", this.state.quotedList[index].no_pre);
+        }
+      }
+
+      console.log(formData)
+
+      SSOServices.editQuote(formData)
+        .then((res) => {
+          ModalAlert.hide(loader);
+
+          let modalAl = Modal.createModal({ text: '' }, { text: res.message }, true, Modal.createSecondaryButton('Ok', () => {
+            this.props.navigation.goBack();
+            Modal.hide(modalAl)
+          }))
+
+        })
+        .catch((err) => {
+          ModalAlert.hide(loader);
+          console.log(err)
+          // if (err.message) {
+          //   ModalAlert.error(err.message);
+          // } else {
+          //   ModalAlert.error("Something went wrong");
+          // }
+        });
+    }
+  };
+
   renderQuotedItem = ({ item, index }) => {
     return (
       <View
@@ -2738,42 +3483,46 @@ class GetQuote extends React.Component {
           alignSelf: "center",
         }}
       >
-        <Text style={{ textAlign: "center",
-            justifyContent: "center",
-            alignItems: "center",  flex:1, fontSize: 14  }}>
+        <Text style={{
+          textAlign: "center",
+          justifyContent: "center",
+          alignItems: "center", flex: 1, fontSize: 14
+        }}>
           {item.user_name}
         </Text>
-        <Text style={{textAlign: "center",
-            justifyContent: "center",
-            alignItems: "center",  flex:1, fontSize: 14 }}>
+        <Text style={{
+          textAlign: "center",
+          justifyContent: "center",
+          alignItems: "center", flex: 1, fontSize: 14
+        }}>
           {item.plan_name}
         </Text>
         <TouchableOpacity
-          disabled={this.state.disableAll || !item.isActive}
+          disabled={this.state.disableAll || !item.isActive || this.state.insuraceType == 2}
           onPress={() => this.onPressValueRadio(index, "pre")}
           style={{
-            flex:1,
+            flex: 1,
             flexDirection: "row",
             justifyContent: "center",
           }}
         >
-          <Image
+          {this.state.insuraceType == 1 && <Image
             source={
               item.status === "pre"
                 ? require("../../assets/on.png")
                 : require("../../assets/off.png")
             }
             style={{ height: 20, width: 20 }}
-          />
+          />}
           <Text style={{ textAlign: "center", fontSize: 14, marginStart: 5 }}>
             {item.pre}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-         disabled={this.state.disableAll || !item.isActive}
+        {this.state.insuraceType == 1 && <TouchableOpacity
+          disabled={this.state.disableAll || !item.isActive}
           onPress={() => this.onPressValueRadio(index, "non_pre")}
           style={{
-            flex:1,
+            flex: 1,
             flexDirection: "row",
             justifyContent: "center",
           }}
@@ -2789,7 +3538,7 @@ class GetQuote extends React.Component {
           <Text style={{ textAlign: "center", fontSize: 14, marginStart: 5 }}>
             {item.no_pre}
           </Text>
-        </TouchableOpacity>
+        </TouchableOpacity>}
       </View>
     );
   };

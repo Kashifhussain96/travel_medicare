@@ -187,7 +187,7 @@ class MyPolicy extends React.Component {
                 this.props.navigation.navigate('CancelPolicy', { id: item.id, quotation_id: item.quotation_id, status: item.status })
                 break;
             case 1:
-                this.props.navigation.navigate('PolicyDetails', { id: item.quotation_id ,policy_id: item.id,status:item.status})
+                this.props.navigation.navigate('PolicyDetails', { id: item.quotation_id, policy_id: item.id, status: item.status })
                 break;
             case 2:
                 this.emailPolicy(item.quotation_id)
@@ -199,8 +199,8 @@ class MyPolicy extends React.Component {
         }
     }
 
-    reissueData = (id) =>{
-        this.props.navigation.navigate('GetQuote', { id: id,isCopy:true,isReissue : true })
+    reissueData = (id) => {
+        this.props.navigation.navigate('GetQuote', { id: id, isCopy: true, isReissue: true })
 
     }
 
@@ -215,16 +215,16 @@ class MyPolicy extends React.Component {
             return "Active"
         } else if (status == 6) {
             return "Policy Change Pending"
-        }else if (status == 7) {
+        } else if (status == 7) {
             return "Matured"
-        }else if(status == 5){
+        } else if (status == 5) {
             return "Void"
         }
     }
 
 
     onPressDocument = (index, item) => {
-        ModalAlert.createOptionModal(this.renderDownloadButtons(item), false, { height:"60%" })
+        ModalAlert.createOptionModal(this.renderDownloadButtons(item), false, { height: "60%" })
     }
 
 
@@ -267,10 +267,10 @@ class MyPolicy extends React.Component {
             { label: "Re-Issue", value: "4" }
         ]
 
-        if(item.status != 1) {
-            arr.pop() 
-            arr.pop() 
-        } 
+        if (item.status != 1) {
+            arr.pop()
+            arr.pop()
+        }
 
         return (
             <View style={[styles.itemView]}>
@@ -278,13 +278,15 @@ class MyPolicy extends React.Component {
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
                 <Text style={styles.listItemText}>{item.role_name}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
+                <Text style={styles.listItemText}>{item.product == "VTC" ? `Visitors to Canada` : `Students to Canada`}</Text>
+                <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
                 <Text style={styles.listItemText}>{item.policy_no}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
                 <Text style={styles.listItemText}>{item.date_of_issue}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
                 <Text style={styles.listItemText}>{item.policy_holder_name}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
-                <Text style={styles.listItemText}>{item.policy_type}</Text>
+                <Text style={styles.listItemText}>{item.trip_type}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
                 <Text style={styles.listItemText}>{'CAD ' + item.quote_amount}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
@@ -308,17 +310,17 @@ class MyPolicy extends React.Component {
                     </TouchableOpacity>
                 </View> */}
 
-                <View style={{ flexDirection: 'row', marginStart: 0, marginEnd: 0,marginTop:-30,width:'20%', alignItems: 'center' }}>
+                <View style={{ flexDirection: 'row', marginStart: 0, marginEnd: 0, marginTop: -30, width: '18%', alignItems: 'center' }}>
                     <DropDownView
                         childData={arr}
                         onItemSelected={(value) => {
-                            if(value == "1"){
+                            if (value == "1") {
                                 this.onPressAction(item, 1)
-                            }else if(value == "2"){
+                            } else if (value == "2") {
                                 this.onPressAction(item, 2)
-                            }else if(value == "3"){
+                            } else if (value == "3") {
                                 this.onPressAction(item, 0)
-                            }else if(value == "4"){
+                            } else if (value == "4") {
                                 this.onPressAction(item, 4)
                             }
                         }}
@@ -340,10 +342,11 @@ class MyPolicy extends React.Component {
                         <View style={[styles.tableView]}>
                             <Text style={styles.itemText}>Employee Name</Text>
                             <Text style={styles.itemText}>Designation</Text>
+                            <Text style={styles.itemText}>Product</Text>
                             <Text style={styles.itemText}>Policy No</Text>
                             <Text style={styles.itemText}>Date of Issue</Text>
                             <Text style={styles.itemText}>Customer Name</Text>
-                            <Text style={styles.itemText}>Policy Type</Text>
+                            <Text style={styles.itemText}>Trip Type</Text>
                             <Text style={styles.itemText}>Policy Amount</Text>
                             <Text style={styles.itemText}>Status</Text>
                             <Text style={styles.itemText}>Doc Download</Text>
@@ -378,10 +381,10 @@ class MyPolicy extends React.Component {
         SSOServices.emailPolicy(formData).then(res => {
             ModalAlert.hide(modal)
             ModalAlert.createModal({ text: 'Alert' }, { text: res.message }, false,
-                    ModalAlert.createSecondaryButton('Ok', () => {
-                        
-                        ModalAlert.hideAll()
-                    }))
+                ModalAlert.createSecondaryButton('Ok', () => {
+
+                    ModalAlert.hideAll()
+                }))
         }).catch(err => {
             ModalAlert.hide(modal)
             ModalAlert.error(err)
@@ -490,35 +493,39 @@ const styles = StyleSheet.create({
 
     tableView: {
         backgroundColor: colors.primary,
-        marginStart: 20, marginEnd: 20,
-        flexDirection: 'row',
+        marginStart: 20,
+        marginEnd: 20,
+        flexDirection: "row",
+        alignItems: "center",
+        alignContent: "center",
+        justifyContent: "center",
         marginTop: 20,
         borderTopLeftRadius: 15,
-        borderTopRightRadius: 15
+        borderTopRightRadius: 15,
     },
     itemText: {
         color: colors.white,
         width: 160,
-        padding: 20,
-        alignContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-        fontSize: 16
+        height: 50,
+        alignItems: "center",
+        textAlign: "center",
+        marginTop: 20,
+        fontSize: 16,
     },
     itemView: {
-        flexDirection: 'row',
+        flexDirection: "row",
         borderWidth: 1,
         borderTopWidth: 0,
         marginStart: 20,
-        height: 80,
+        height: 70,
         marginEnd: 20,
     },
     listItemText: {
         width: 160,
-        justifyContent: 'center',
-        alignSelf: 'center',
-        textAlign: 'center',
-        fontSize: 16
+        justifyContent: "center",
+        alignSelf: "center",
+        textAlign: "center",
+        fontSize: 16,
     },
 })
 

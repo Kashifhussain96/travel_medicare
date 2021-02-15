@@ -61,14 +61,14 @@ class MyQuote extends React.Component {
     return (
       <View style={{ flexDirection: "row", alignSelf: "center" }}>
         <TouchableOpacity
-          onPress={() => {}}
+          onPress={() => { }}
           activeOpacity={0.7}
           style={styles.nextButton}
         >
           <Text style={styles.next}>Search</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => {}}
+          onPress={() => { }}
           activeOpacity={0.7}
           style={styles.nextButton}
         >
@@ -83,24 +83,33 @@ class MyQuote extends React.Component {
       case 0:
         break;
       case 1:
-        this.props.navigation.navigate("GetQuote", { id: item.quotation_id ,isCopy : false});
+        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: false,isEdit: false });
         break;
       case 2:
-        this.props.navigation.navigate("GetQuote", { id: item.quotation_id,isCopy : true });
+        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: true ,isEdit: false});
+        break;
+      case 3:
+        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: false,isEdit: true });
         break;
     }
   };
 
   renderItem = ({ item, index }) => {
+
+    console.log(item.trip_type)
     return (
       <View style={[styles.itemView]}>
         <Text style={styles.listItemText}>{item.user_name}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
         <Text style={styles.listItemText}>{item.role_name}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
+        <Text style={styles.listItemText}>{item.product == "VTC" ? `Visitors to Canada` : `Students to Canada`}</Text>
+        <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
         <Text style={styles.listItemText}>{item.quotaion_no}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
         <Text style={styles.listItemText}>{item.date_of_issue}</Text>
+        <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
+        <Text style={styles.listItemText}>{item.trip_type}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
         <Text style={styles.listItemText}>{item.policy_holder_name}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
@@ -127,7 +136,7 @@ class MyQuote extends React.Component {
                 { label: "Copy Quote", value: "4" },
                 { label: "Cancel Quote", value: "5" },
               ]}
-              onItemSelected={(value) => this.quoteoption(value, item,index)}
+              onItemSelected={(value) => this.quoteoption(value, item, index)}
               value={''}
             />
           </View>
@@ -157,7 +166,7 @@ class MyQuote extends React.Component {
     } else if (value == "2") {
       this.onPressAction(item, 1);
     } else if (value == "3") {
-      this.props.navigation.navigate("EditQuote", { id: item.quotation_id });
+      this.onPressAction(item, 3);
     } else if (value == "4") {
       this.onPressAction(item, 2);
     } else if (value == "5") {
@@ -186,8 +195,10 @@ class MyQuote extends React.Component {
             <View style={[styles.tableView]}>
               <Text style={styles.itemText}>Employee Name</Text>
               <Text style={styles.itemText}>Designation</Text>
+              <Text style={styles.itemText}>Product</Text>
               <Text style={styles.itemText}>Quotation No</Text>
               <Text style={styles.itemText}>Date of Quotation</Text>
+              <Text style={styles.itemText}>Trip Type</Text>
               <Text style={styles.itemText}>Customer Name</Text>
               <Text style={styles.itemText}>Quotation Amount</Text>
               <Text style={[styles.itemText, { marginStart: 30 }]}>Action</Text>
@@ -197,18 +208,18 @@ class MyQuote extends React.Component {
               {this.state.data.length > 0 ? (
                 <FlatList data={this.state.data} renderItem={this.renderItem} />
               ) : (
-                <Text
-                  style={{
-                    flex: 1,
-                    marginStart: 50,
-                    fontSize: 30,
-                    fontWeight: "600",
-                    marginTop: 100,
-                  }}
-                >
-                  No Data
-                </Text>
-              )}
+                  <Text
+                    style={{
+                      flex: 1,
+                      marginStart: 50,
+                      fontSize: 30,
+                      fontWeight: "600",
+                      marginTop: 100,
+                    }}
+                  >
+                    No Data
+                  </Text>
+                )}
             </View>
           </View>
         </ScrollView>
@@ -246,7 +257,7 @@ class MyQuote extends React.Component {
             <Text>From Date</Text>
             <CalenderView
               style={{ width: "95%", marginEnd: 20 }}
-              onPress={() => {}}
+              onPress={() => { }}
               showCalender={true}
               title={""}
             />
@@ -256,7 +267,7 @@ class MyQuote extends React.Component {
             <CalenderView
               style={{ width: "95%", marginEnd: 10 }}
               showCalender={true}
-              onPress={() => {}}
+              onPress={() => { }}
               title={""}
             />
           </View>
@@ -292,11 +303,11 @@ const styles = StyleSheet.create({
   },
   flexDirection1: {
     flexDirection: "row",
-    width: "50%",
+    width: "48%",
     height: "50%",
     marginBottom: 30,
     marginTop: 30,
-    marginLeft: 15,
+    marginLeft: 5,
     marginRight: 15,
     padding: 0,
     alignSelf: "center",

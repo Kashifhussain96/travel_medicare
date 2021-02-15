@@ -107,6 +107,8 @@ class GetQuote extends React.Component {
   }
 
   async componentDidMount() {
+
+    alert("EDIT")
     this.getPolicyLimit();
     this.getPlan();
     this.getQuoteByID();

@@ -121,6 +121,16 @@ export function editQuote(data) {
   });
 }
 
+
+export function editQuoteSTC(data) {
+  return request({
+    url: `updateQuote_stc`,
+    method: "POST",
+    data: data,
+  });
+}
+
+
 export function getMyQuoteMail(data) {
   return request({
     url: `mailquote`,
@@ -160,9 +170,28 @@ export function calculatePremium(data) {
   });
 }
 
+
+export function calculatePremiumForStudent(data) {
+  return requestMultiPart({
+    url: `getQuoteAmount_stc`,
+    method: "POST",
+    data: data,
+  });
+}
+
 export function saveQuote(data) {
   return requestMultiPart({
     url: `saveQuote`,
+    method: "POST",
+    data: data,
+  });
+}
+
+
+
+export function saveQuoteSTC(data) {
+  return requestMultiPart({
+    url: `saveQuote_stc`,
     method: "POST",
     data: data,
   });
@@ -186,6 +215,14 @@ export function getInsuredPremiumAmount(data) {
 export function savePolicy(data) {
   return requestMultiPart({
     url: `save_policy`,
+    method: "POST",
+    data: data,
+  });
+}
+
+export function savePolicySTC(data) {
+  return requestMultiPart({
+    url: `savePolicy_stc`,
     method: "POST",
     data: data,
   });

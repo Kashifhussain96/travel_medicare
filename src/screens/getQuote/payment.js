@@ -34,7 +34,8 @@ class PaymentScreen extends React.Component {
             card: '',
             month: '',
             cvv: '',
-            year: ''
+            year: '',
+            insuranceType: props.navigation.state.params.insuranceType
         };
 
 
@@ -48,6 +49,7 @@ class PaymentScreen extends React.Component {
 
         this.setState({
             firstName: data.firstName,
+            lastName: data.lastName,
             email: data.email,
             phoneNumber: data.phoneNumber,
             custAddress: data.address,
@@ -57,7 +59,9 @@ class PaymentScreen extends React.Component {
             firstDate: data.firstDate,
             paymentFrequency: data.paymentFrequency,
             id: data.id,
+            insuranceType: data.insuranceType
         })
+
 
 
     }
@@ -75,35 +79,73 @@ class PaymentScreen extends React.Component {
 
     onPressPayment = () => {
         if (this.isValidate()) {
-            let modal = Modal.createProgressModal('Please Wait...',false);
-            let formData = new FormData();
-            formData.append("user_id", this.props.userData.user_id);
-            formData.append("first_name", this.state.firstName)
-            formData.append("last_name", this.state.lastName)
-            formData.append("email", this.state.email)
-            formData.append("mobile", this.state.phoneNumber)
-            formData.append("zip", this.state.postalCode)
-            formData.append("cardNumber", this.state.card)
-            formData.append("month", this.state.month)
-            formData.append("year", this.state.year)
-            formData.append("code", this.state.cvv)
-            formData.append("amount", this.state.finalAmount)
-            formData.append("first_date_of_cover", this.state.firstDate)
-            formData.append("payment_frequency", this.state.paymentFrequency)
-            formData.append("quotation_id", this.state.id)
 
 
-            SSOServices.savePolicy(formData).then(res => {
-                Modal.hide(modal)
-                let modalAl = Modal.createModal({ text: '' }, { text: res.message }, true, Modal.createSecondaryButton('Ok', () => {
+            if (this.state.insuranceType == 1) {
+                let modal = Modal.createProgressModal('Please Wait...', false);
+                let formData = new FormData();
+                formData.append("user_id", this.props.userData.user_id);
+                formData.append("first_name", this.state.firstName)
+                formData.append("last_name", this.state.lastName)
+                formData.append("email", this.state.email)
+                formData.append("mobile", this.state.phoneNumber)
+                formData.append("zip", this.state.postalCode)
+                formData.append("cardNumber", this.state.card)
+                formData.append("month", this.state.month)
+                formData.append("year", this.state.year)
+                formData.append("code", this.state.cvv)
+                formData.append("amount", this.state.finalAmount)
+                formData.append("first_date_of_cover", this.state.firstDate)
+                formData.append("payment_frequency", this.state.paymentFrequency)
+                formData.append("quotation_id", this.state.id)
+
+
+                SSOServices.savePolicy(formData).then(res => {
+                    Modal.hide(modal)
+                    let modalAl = Modal.createModal({ text: '' }, { text: res.message }, true, Modal.createSecondaryButton('Ok', () => {
                         this.props.navigation.navigate('MyPolicy');
                         Modal.hide(modalAl)
-                }))
-            }).catch(err => {
-                Modal.error(err.message)
-                Modal.hide(modal)
-            })
-            console.log(formData)
+                    }))
+                }).catch(err => {
+                    Modal.error(err.message)
+                    Modal.hide(modal)
+                })
+            } else {
+                let modal = Modal.createProgressModal('Please Wait...', false);
+                let formData = new FormData();
+                formData.append("user_id", this.props.userData.user_id);
+                formData.append("first_name", this.state.firstName)
+                formData.append("last_name", this.state.lastName)
+                formData.append("email", this.state.email)
+                formData.append("mobile", this.state.phoneNumber)
+                formData.append("address", this.state.custAddress)
+                formData.append("zip", this.state.postalCode)
+                formData.append("cardNumber", this.state.card)
+                formData.append("month", this.state.month)
+                formData.append("year", this.state.year)
+                formData.append("code", this.state.cvv)
+                formData.append("amount", this.state.finalAmount)
+                formData.append("first_date_of_cover", this.state.firstDate)
+                formData.append("payment_frequency", this.state.paymentFrequency)
+                formData.append("quotation_id", this.state.id)
+
+
+                SSOServices.savePolicySTC(formData).then(res => {
+                    Modal.hide(modal)
+                    let modalAl = Modal.createModal({ text: '' }, { text: res.message }, true, Modal.createSecondaryButton('Ok', () => {
+                        this.props.navigation.goBack()
+                        this.props.navigation.goBack()
+                        this.props.navigation.navigate('MyPolicy');
+                        Modal.hide(modalAl)
+                    }))
+                }).catch(err => {
+                    Modal.error(err.message)
+                    Modal.hide(modal)
+                })
+            }
+
+
+
         }
     }
 
