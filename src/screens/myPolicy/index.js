@@ -227,8 +227,22 @@ class MyPolicy extends React.Component {
         ModalAlert.createOptionModal(this.renderDownloadButtons(item), false, { height: "60%" })
     }
 
+    downloadUrl=(url)=>{
+
+        if(url.startsWith("https") || url.startsWith("http")){
+            Linking.openURL(url) 
+        }else if(url.startsWith("/var")){
+            let actualUrl = url.replace("/var/www/travelmedicare.com/public_html","")
+            Linking.openURL("https://www.travelmedicare.com"+actualUrl)
+        }else{
+            ModalAlert.alert("Invalid Document Link")
+        }
+
+
+    }
 
     renderDownloadButtons = (item) => {
+        console.log(item)
         return (
             <View>
                 <Text style={{ fontSize: 20 }}>Document Policy No.</Text>
@@ -236,19 +250,19 @@ class MyPolicy extends React.Component {
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
                     <Text style={{ fontSize: 18, fontWeight: '600' }}>{item.policy_docs[0].document_name}</Text>
-                    <TouchableOpacity onPress={() => { Linking.openURL(item.policy_docs[0].doc) }}>
+                    <TouchableOpacity onPress={() => {this.downloadUrl(item.policy_docs[0].doc) }}>
                         <Image style={{ height: 20, width: 20 }} source={require('../../assets/download.png')} />
                     </TouchableOpacity>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
                     <Text style={{ fontSize: 18, fontWeight: '600' }}>{item.policy_docs[1].document_name}</Text>
-                    <TouchableOpacity onPress={() => { Linking.openURL(item.policy_docs[1].doc) }}>
+                    <TouchableOpacity onPress={() => { this.downloadUrl(item.policy_docs[1].doc) }}>
                         <Image style={{ height: 20, width: 20 }} source={require('../../assets/download.png')} />
                     </TouchableOpacity>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
                     <Text style={{ fontSize: 18, fontWeight: '600' }}>{item.policy_docs[2].document_name}</Text>
-                    <TouchableOpacity onPress={() => { Linking.openURL(item.policy_docs[2].doc) }}>
+                    <TouchableOpacity onPress={() => { this.downloadUrl(item.policy_docs[2].doc) }}>
                         <Image style={{ height: 20, width: 20 }} source={require('../../assets/download.png')} />
                     </TouchableOpacity>
                 </View>

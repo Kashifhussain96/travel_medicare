@@ -13,7 +13,7 @@ import colors from '../../utils/colors';
 
 class PolicyDetails extends React.Component {
    constructor(props) {
-      super(props);
+      super();
       this.state = {
          instText: "",
          tab: "Summary",
@@ -44,8 +44,10 @@ class PolicyDetails extends React.Component {
 
    async componentDidMount() {
       this.getData()
-      this.getPolicyTransaction()
+     this.getPolicyTransaction()
       this.getPolicyPamentTransaction()
+
+      this.showRequestedCorrections
 
    }
 
@@ -85,8 +87,8 @@ class PolicyDetails extends React.Component {
 
       let id = this.props.navigation.state.params.id
 
-      formData.append("user_id", this.props.userData.user_id);
-      formData.append("quotation_id", id);
+      formData.append("user_id", this.props.userData.user_id+"");
+      formData.append("quotation_id", id+"");
       SSOServices.viewPolicy(formData).then(res => {
          ModalAlert.hide(modal);
          this.setState({
@@ -134,6 +136,11 @@ class PolicyDetails extends React.Component {
                <Text style={styles.insuranceTitle}>Deductible:</Text>
                <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.deductibleAmount != null ? `$ ` + this.state.policydata.poilcy_details.deductibleAmount.amount+" Per Claim" : ''}</Text>
             </View>
+
+            <View style={styles.insuranceContainer}>
+               <Text style={styles.insuranceTitle}>Deductible:</Text>
+               <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.deductibleAmount != null ? `$ ` + this.state.policydata.poilcy_details.deductibleAmount.amount+" Per Claim" : ''}</Text>
+            </View>
             <View style={styles.insuranceContainer}>
                <Text style={styles.insuranceTitle}>Policy Number:</Text>
                <Text style={styles.insuranceDesc}>{this.state.policydata.poilcy_details.policy_no}</Text>
@@ -166,7 +173,10 @@ class PolicyDetails extends React.Component {
                <Text style={styles.insuranceTitle}>Total Premium:</Text>
                <Text style={styles.insuranceDesc}>{`$ ` + this.state.policydata.poilcy_details.quote_amount}</Text>
             </View>
-
+            <View style={styles.insuranceContainer}>
+               <Text style={styles.insuranceTitle}>Payment Method:</Text>
+               <Text style={styles.insuranceDesc}>Credit Card</Text>
+            </View>
          </View>
       )
    }
@@ -331,7 +341,7 @@ d) The insured person may designate a beneficiary to receive the amount payable 
 
             </View>
            
-
+{/* 
             <View style={styles.personalDetails}>
                <Text style={styles.advisoryDetails}>Advisor Details:-</Text>
                <Text style={styles.name}>{this.state.policydata.policyadmin.first_name + ' ' + this.state.policydata.policyadmin.last_name}</Text>
@@ -339,7 +349,7 @@ d) The insured person may designate a beneficiary to receive the amount payable 
                <Text style={styles.userEmail}>{this.state.policydata.policyadmin.email}</Text>
                <Text style={styles.userAddress}>{this.state.policydata.policyadmin.address}</Text>
                <Text style={styles.addressState}>{this.state.policydata.policyadmin.province_licensed}</Text>
-            </View>
+            </View> */}
 
             {this.renderInsurance()}
 
@@ -565,9 +575,9 @@ d) The insured person may designate a beneficiary to receive the amount payable 
 
    showRequestedCorrections = (item, index) => {
       if (item.correction_requested_json.includes("field")) {
-         ModalAlert.createOptionModal(this.renderCorrection(item), false, { height: '60%' })
+         ModalAlert.createOptionModal(this.renderCorrection(item), false)
       } else {
-         ModalAlert.createOptionModal(this.renderArrivalCorrection(item), false, { height: '75%' })
+         ModalAlert.createOptionModal(this.renderArrivalCorrection(item), false)
       }
    }
 
@@ -576,41 +586,46 @@ d) The insured person may designate a beneficiary to receive the amount payable 
       let data = JSON.parse(item.correction_requested_json)
 
       return (
-         <View>
+         <View style={{height:200}}>
             <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold' }}>Requested Data For Transaction :{item.transaction_no}</Text>
 
-            <FlatList
-               renderItem={({ item, index }) => {
-                  return (
-                     <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
-                        <Text style={{ fontWeight: 'bold', fontSize: 20, marginStart: 10, marginTop: 10 }}>Insured Name:</Text>
-                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 10, flexDirection: 'row' }}>
-                           <Text style={{ width: '40%' }}>Old Name:</Text>
-                           <Text style={{ width: '40%' }}>{item.old_insuredname}</Text>
+            <ScrollView>
+               {
+                  data.map((item, index) => {
+                     return (
+                        <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+                           <Text style={{ fontWeight: 'bold', fontSize: 20, marginStart: 10, marginTop: 10 }}>Insured Name:</Text>
+                           <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 10, flexDirection: 'row' }}>
+                              <Text style={{ width: '40%' }}>Old Name:</Text>
+                              <Text style={{ width: '40%' }}>{item.old_insuredname}</Text>
+                           </View>
+                           <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                              <Text style={{ width: '40%' }}>New Name:</Text>
+                              <Text style={{ width: '40%' }}>{item.new_insuredname}</Text>
+                           </View>
+                           <Text style={{ fontWeight: 'bold', fontSize: 20, marginStart: 10, marginTop: 10 }}>Date of Birth:</Text>
+                           <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 10, marginBottom: 20, flexDirection: 'row' }}>
+                              <Text style={{ width: '40%' }}>Old DOB:</Text>
+                              <Text style={{ width: '40%' }}>{item.old_ins_dob}</Text>
+                           </View>
+                           <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
+                              <Text style={{ width: '40%' }}>New DOB:</Text>
+                              <Text style={{ width: '40%' }}>{item.new_ins_dob}</Text>
+                           </View>
+                           <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row', marginBottom: 20 }}>
+                              <Text style={{ width: '40%' }}>Proof:</Text>
+                              <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + item.document) }} style={{ width: '40%' }}>
+                                 <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
+                              </TouchableOpacity>
+                           </View>
                         </View>
-                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
-                           <Text style={{ width: '40%' }}>New Name:</Text>
-                           <Text style={{ width: '40%' }}>{item.new_insuredname}</Text>
-                        </View>
-                        <Text style={{ fontWeight: 'bold', fontSize: 20, marginStart: 10, marginTop: 10 }}>Date of Birth:</Text>
-                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 10, marginBottom: 20, flexDirection: 'row' }}>
-                           <Text style={{ width: '40%' }}>Old DOB:</Text>
-                           <Text style={{ width: '40%' }}>{item.old_ins_dob}</Text>
-                        </View>
-                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
-                           <Text style={{ width: '40%' }}>New DOB:</Text>
-                           <Text style={{ width: '40%' }}>{item.new_ins_dob}</Text>
-                        </View>
-                        <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row', marginBottom: 20 }}>
-                           <Text style={{ width: '40%' }}>Proof:</Text>
-                           <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + item.document) }} style={{ width: '40%' }}>
-                              <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
-                           </TouchableOpacity>
-                        </View>
-                     </View>
-                  )
-               }}
-               data={data} />
+                     )
+                   })
+               }
+
+               
+            </ScrollView>
+         
          </View>
       )
    }
@@ -621,10 +636,11 @@ d) The insured person may designate a beneficiary to receive the amount payable 
          <View>
             <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold' }}>Requested Data For Transaction :{item.transaction_no}</Text>
 
-            <FlatList
-               renderItem={({ item, index }) => {
-                  return (
-                     <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
+            <ScrollView style={{height:"90%"}}>
+{
+                  data.map((item, index) => {
+                     return (
+                        <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '90%', alignSelf: 'center' }}>
                         <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
                            <Text style={{ width: '40%' }}>Field:</Text>
                            <Text style={{ width: '40%' }}>{item.field}</Text>
@@ -639,9 +655,11 @@ d) The insured person may designate a beneficiary to receive the amount payable 
                         </View>
 
                      </View>
-                  )
-               }}
-               data={data} />
+                     )
+                   })
+               }
+            </ScrollView>
+
          </View>
       )
    }
@@ -711,7 +729,7 @@ d) The insured person may designate a beneficiary to receive the amount payable 
                   
 
                   {
-                     this.state.voidList.length > 0 ?<FlatList data={this.state.voidList} renderItem={this.renderItemVoid} />
+                     this.state.voidList != null &&  this.state.voidList.length > 0 ?<FlatList data={this.state.voidList} renderItem={this.renderItemVoid} />
                         : <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',alignSelf:'center', marginTop:20,marginStart:20 }}>No Data</Text>
                   }
                </View>
@@ -722,7 +740,7 @@ d) The insured person may designate a beneficiary to receive the amount payable 
                   
 
                   {
-                     this.state.refundList.length > 0 ?<FlatList data={this.state.refundList} renderItem={this.renderItemRefund} />
+                      this.state.refundList != null && this.state.refundList.length > 0 ?<FlatList data={this.state.refundList} renderItem={this.renderItemRefund} />
                         : <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',alignSelf:'center', marginTop:20,marginStart:20 }}>No Data</Text>
                   }
                </View>
@@ -732,7 +750,7 @@ d) The insured person may designate a beneficiary to receive the amount payable 
                   <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',marginTop:20,marginStart:20 }}>Cancellation Transactions</Text>
                   
                   {
-                     this.state.cancellationList.length > 0 ?<FlatList data={this.state.cancellationList} renderItem={this.renderItemCancellation} />
+                     this.state.cancellationList != null &&  this.state.cancellationList.length > 0 ?<FlatList data={this.state.cancellationList} renderItem={this.renderItemCancellation} />
                         : <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',alignSelf:'center', marginTop:20,marginStart:20 }}>No Data</Text>
                   }
                   
@@ -742,7 +760,8 @@ d) The insured person may designate a beneficiary to receive the amount payable 
                <View>
                   <Text style={{ lineHeight: 20, marginTop: 20, fontWeight: 'bold',marginTop:20,marginStart:20 }}>Correction Transactions</Text>
                   {
-                     this.state.correctionList.length > 0 ? <FlatList data={this.state.correctionList} renderItem={this.renderItemCorrection} />
+                     this.state.correctionList != null && this.state.correctionList.length > 0 ?
+                      <FlatList data={this.state.correctionList} renderItem={this.renderItemCorrection} />
                         : <Text style={{ lineHeight: 20, marginTop: 20,marginBottom:20, fontWeight: 'bold',alignSelf:'center', marginTop:20,marginStart:20 }}>No Data</Text>
                   }
                   

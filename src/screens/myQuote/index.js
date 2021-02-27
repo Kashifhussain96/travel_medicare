@@ -157,7 +157,7 @@ class MyQuote extends React.Component {
       SSOServices.getMyQuoteMail(formData)
         .then((res) => {
           ModalAlert.hide(modal);
-          ModalAlert.alert(res.message);
+          ModalAlert.alert("Quote has been sent successfully");
         })
         .catch((err) => {
           ModalAlert.hide(modal);

@@ -232,9 +232,13 @@ class cancelpolicy extends React.Component {
             }
 
             case 3: {
+                let name = ''
+                if (image.path) {
+                    name = image.path.slice(image.path.length - 16, image.path.length)
+                }
                 this.setState({
                     boardingPass: image,
-                    boardingPassText: image.filename
+                    boardingPassText: name
                 });
                 break;
 
@@ -1188,6 +1192,7 @@ class cancelpolicy extends React.Component {
     }
 
     selectUser = (value, item, i) => {
+
         let list = [...this.state.refundMidTermData]
 
         for (let index = 0; index < list.length; index++) {
@@ -1426,7 +1431,10 @@ class cancelpolicy extends React.Component {
                 </View>
 
                 {this.state.financial === "non_fin" && <View>
-                    <View style={{ marginEnd: 12, alignSelf: 'flex-end' }}>
+
+                    <View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
+                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Email*</Text>
+
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditEmail: status })}
                             value={this.state.isEditEmail}
@@ -1443,7 +1451,9 @@ class cancelpolicy extends React.Component {
                         onChangeText={(text) => this.setState({ nonFinEmail: text })}
                         isShowDrawable={false}
                     />
-                    <View style={{ marginEnd: 12, alignSelf: 'flex-end' }}>
+                     <View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
+                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>City*</Text>
+
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditCity: status })}
                             value={this.state.isEditCity}
@@ -1460,7 +1470,9 @@ class cancelpolicy extends React.Component {
                         onChangeText={(text) => this.setState({ nonFinCity: text })}
                         isShowDrawable={false}
                     />
-                    <View style={{ marginEnd: 12, alignSelf: 'flex-end' }}>
+                    <View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
+                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Postal Code*</Text>
+
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditPostalCode: status })}
                             value={this.state.isEditPostalCode}
@@ -1477,8 +1489,9 @@ class cancelpolicy extends React.Component {
                         onChangeText={(text) => this.setState({ nonFinPostalCode: text })}
                         isShowDrawable={false}
                     />
+  <View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
+                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Address*</Text>
 
-                    <View style={{ marginEnd: 12, alignSelf: 'flex-end' }}>
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditAddress: status })}
                             value={this.state.isEditAddress}
@@ -1496,7 +1509,9 @@ class cancelpolicy extends React.Component {
                         isShowDrawable={false}
                     />
 
-                    <View style={{ marginEnd: 12, alignSelf: 'flex-end' }}>
+<View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
+                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Phone*</Text>
+
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditPhone: status })}
                             value={this.state.isEditPhone}
@@ -1513,6 +1528,8 @@ class cancelpolicy extends React.Component {
                         onChangeText={(text) => this.setState({ nonFinPhone: text })}
                         isShowDrawable={false}
                     />
+                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Remarks*</Text>
+
                     <TextInputComponent
                         isSecure={false}
                         placeholder={"Remarks"}

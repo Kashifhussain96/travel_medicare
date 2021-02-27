@@ -7,10 +7,10 @@ import Modal from './index'
 
 class OptionsComponent {
 
-   constructor(component,backgroundColor,styless) {
+   constructor(component,backgroundColor,styles) {
       this.component = component
       this.backgroundColor = backgroundColor
-      this.styless = styless
+      this.styless = styles
    }
 
    getHeader = () => {

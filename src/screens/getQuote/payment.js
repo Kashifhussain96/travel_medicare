@@ -47,6 +47,7 @@ class PaymentScreen extends React.Component {
         Modal.hideAll()
         let data = this.props.navigation.state.params.data
 
+
         this.setState({
             firstName: data.firstName,
             lastName: data.lastName,

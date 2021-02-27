@@ -321,6 +321,7 @@ class EditQuote extends React.Component {
 
 
         };
+        policyNameList.push({ label: res.data.insured_data[index].insured_name, value: res.data.insured_data[index].insured_name });
 
         list.push(obj);
       }
@@ -337,7 +338,7 @@ class EditQuote extends React.Component {
 
   onPressEditQuote = () => {
     if (this.validatePolicyHolderDetails()) {
-      let loader = ModalAlert.createProgressModal("Please wait...", false);
+      // let loader = ModalAlert.createProgressModal("Please wait...", false);
       let formData = new FormData()
       let list = [];
       for (let index = 0; index < this.state.benefiaryData.length; index++) {
@@ -469,25 +470,25 @@ class EditQuote extends React.Component {
 
       console.log(formData)
 
-      SSOServices.editQuote(formData)
-        .then((res) => {
-          ModalAlert.hide(loader);
+      // SSOServices.editQuote(formData)
+      //   .then((res) => {
+      //     ModalAlert.hide(loader);
 
-          let modalAl = Modal.createModal({ text: '' }, { text: res.message }, true, Modal.createSecondaryButton('Ok', () => {
-            this.props.navigation.goBack();
-            Modal.hide(modalAl)
-          }))
+      //     let modalAl = Modal.createModal({ text: '' }, { text: res.message }, true, Modal.createSecondaryButton('Ok', () => {
+      //       this.props.navigation.goBack();
+      //       Modal.hide(modalAl)
+      //     }))
 
-        })
-        .catch((err) => {
-          ModalAlert.hide(loader);
-          console.log(err)
-          // if (err.message) {
-          //   ModalAlert.error(err.message);
-          // } else {
-          //   ModalAlert.error("Something went wrong");
-          // }
-        });
+      //   })
+      //   .catch((err) => {
+      //     ModalAlert.hide(loader);
+      //     console.log(err)
+      //     // if (err.message) {
+      //     //   ModalAlert.error(err.message);
+      //     // } else {
+      //     //   ModalAlert.error("Something went wrong");
+      //     // }
+      //   });
     }
   };
 

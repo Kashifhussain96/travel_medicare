@@ -27,7 +27,6 @@ import DatePicker from "../../components/datePicker";
 import { createStackNavigator } from "react-navigation-stack";
 import CalenderView from "../../components/textInput/calenderView";
 import DropDownView from "../../components/textInput/dropDown";
-var activeIndex = -1;
 import { getDateStringFromDate } from "../../utils";
 import Modal from "../../utils/modal";
 import { min } from "react-native-reanimated";
@@ -107,7 +106,7 @@ class GetQuote extends React.Component {
       policyCity: "",
       policyPostalCode: "",
       policyNumber: "",
-      isEdit:false,
+      isEdit: false,
       policyAddress: "",
       superVisa: false,
       policyBeneficiary: "",
@@ -118,7 +117,9 @@ class GetQuote extends React.Component {
       insuraceType: 1,
       studentPolicyOptions: "",
       studentPolicy: [],
-      planName:""
+      planName: "",
+      activeIndex: -1,
+      adjustmentAmt: 0.00
     };
   }
 
@@ -127,6 +128,8 @@ class GetQuote extends React.Component {
     await this.getPolicyLimit();
     await this.getDeductible();
 
+
+    this.setMindate()
     if (this.props.navigation.state.params.id) {
       if (this.props.navigation.state.params.isCopy) {
         this.copyQuote(this.props.navigation.state.params.id)
@@ -223,12 +226,12 @@ class GetQuote extends React.Component {
       let ele = list[index];
 
 
-        let obj = {
-          user_name: ele[0],
-          plan_name: ele[1],
-          pre: ele[2],
-        };
-        quoteList.push(obj);
+      let obj = {
+        user_name: ele[0],
+        plan_name: ele[1],
+        pre: ele[2],
+      };
+      quoteList.push(obj);
 
     }
 
@@ -248,9 +251,11 @@ class GetQuote extends React.Component {
     let list = [...this.state.plans];
     let active = -1;
 
+    let planName = ""
     for (let index = 0; index < list.length; index++) {
       if (list[index].plan_id === id) {
         active = index;
+        planName = list[index].plan_name
       }
     }
 
@@ -258,6 +263,7 @@ class GetQuote extends React.Component {
       {
         activeIndex: active,
         planType: id,
+        planName
       },
       () => {
         this.getDeductible();
@@ -275,7 +281,7 @@ class GetQuote extends React.Component {
             this.setState({
               insuraceType: 2,
               disableAll: !status,
-              isEdit:status,
+              isEdit: status,
               id: res.data.getquoteData.id,
               fromDate: res.data.getquoteData.first_date_of_cover,
               lastDate: res.data.getquoteData.last_date_of_cover,
@@ -292,7 +298,7 @@ class GetQuote extends React.Component {
               policyAddress: res.data.getquoteData.policy_holder_address,
               policyNumber: res.data.getquoteData.policy_holder_phone,
               policyBeneficiary: res.data.getquoteData.policy_holder_beneficiary,
-              studentPolicyOptions : res.data.getquoteData.student_policy_option,
+              studentPolicyOptions: res.data.getquoteData.student_policy_option,
             })
 
             this.calculateTableDataSTC(res.data.getquoteData.tableData, res.data);
@@ -315,7 +321,7 @@ class GetQuote extends React.Component {
               disableAll: !status,
               fromDate: res.data.getquoteData.first_date_of_cover,
               lastDate: res.data.getquoteData.last_date_of_cover,
-              isEdit:status,
+              isEdit: status,
               planType: res.data.getquoteData.plan_id,
               duration: res.data.getquoteData.duration.toString(),
               departureDate: res.data.getquoteData.arrival_date,
@@ -355,6 +361,7 @@ class GetQuote extends React.Component {
   calculateBeneficiaryData = (res, status) => {
 
     let list = [];
+    let policyNameList = [];
     try {
 
       for (let index = 0; index < res.data.insured_data.length; index++) {
@@ -387,10 +394,14 @@ class GetQuote extends React.Component {
 
         };
 
+        policyNameList.push({ label: res.data.insured_data[index].insured_name, value: res.data.insured_data[index].insured_name });
+
+
         list.push(obj);
       }
       this.setState({
         benefiaryData: list,
+        policyHolderName: policyNameList
       }, () => {
         console.log("Benefiarcy Data", this.state.benefiaryData);
 
@@ -422,11 +433,13 @@ class GetQuote extends React.Component {
 
 
         };
+        policyNameList.push({ label: res.data.insured_data[index].insured_name, value: res.data.insured_data[index].insured_name });
 
         list.push(obj);
       }
       this.setState({
         benefiaryData: list,
+        policyHolderName: policyNameList
       }, () => {
         console.log("Benefiarcy Data", this.state.benefiaryData);
 
@@ -493,6 +506,14 @@ class GetQuote extends React.Component {
       formData.append("policy_holder_address", this.state.policyAddress);
 
       formData.append("Waiting_period", this.state.waitingPeriod);
+
+
+      let del = this.state.delInsuredIds.slice(0, this.state.delInsuredIds.length - 1)
+
+
+
+
+      formData.append("del_insured_ids", del);
 
       formData.append("extend_policy_id", 0);
       formData.append("country_id", 1);
@@ -697,7 +718,7 @@ class GetQuote extends React.Component {
 
   setMindate = () => {
     let d = new Date();
-    d.setDate(d.getDate() - 14);
+    d.setDate(d.getDate() - 15);
 
     this.setState({
       minDate: d,
@@ -766,7 +787,8 @@ class GetQuote extends React.Component {
         this.setState({
           policyData: data,
           policyBackUp: data,
-          studentPolicy: [{ label: "CAD 2000000", value: "2000000" }]
+          studentPolicy: [{ label: "CAD 2000000", value: "2000000" }],
+          policyLimit: this.state.insuraceType == 1 ? "" : "2000000"
         });
       })
       .catch((err) => { });
@@ -942,39 +964,54 @@ class GetQuote extends React.Component {
       });
   }
 
-  
+
   calculateTotalAmountSTC = () => {
     let total = 0;
 
-    let list =[...this.state.quotedList]
+    let list = [...this.state.quotedList]
 
-      for (let index = 0; index < list.length; index++) {
-        total +=parseInt(list[index].pre)
-      }
-  
-      this.setState({
-        totalAmount: total,
-      });
-   
+    for (let index = 0; index < list.length; index++) {
+      total += parseInt(list[index].pre)
+    }
+
+    let adjustmentAmt = 0;
+
+    if (total <= 20) {
+      adjustmentAmt = 20 - total
+    }
+
+    this.setState({
+      totalAmount: total,
+      adjustmentAmt: adjustmentAmt + '.00'
+    });
+
   };
 
   calculateTotalAmount = () => {
     let total = 0;
 
-      for (let index = 0; index < this.state.quotedList.length; index++) {
-        if (this.state.quotedList[index].status === "pre") {
-          total += parseInt(this.state.quotedList[index].pre);
-        }
-  
-        if (this.state.quotedList[index].status === "non_pre") {
-          total += parseInt(this.state.quotedList[index].no_pre);
-        }
+    for (let index = 0; index < this.state.quotedList.length; index++) {
+      if (this.state.quotedList[index].status === "pre") {
+        total += parseInt(this.state.quotedList[index].pre);
       }
-  
-      this.setState({
-        totalAmount: total,
-      });
-   
+
+      if (this.state.quotedList[index].status === "non_pre") {
+        total += parseInt(this.state.quotedList[index].no_pre);
+      }
+    }
+
+
+    let adjustmentAmt = 0;
+
+    if (total <= 20) {
+      adjustmentAmt = 20 - total
+    }
+
+    this.setState({
+      totalAmount: total,
+      adjustmentAmt: adjustmentAmt + '.00'
+    });
+
   };
 
   isValidate = () => {
@@ -1155,19 +1192,23 @@ class GetQuote extends React.Component {
     return (
       <ScrollView style={{ backgroundColor: "#00A4A3" }}>
         <View style={{ backgroundColor: "#00A4A3", padding: 15 }}>
-          <Text
-            style={{
-              color: "white",
-              fontWeight: "bold",
-              fontSize: 16,
-              padding: 5,
-              marginTop: 10,
-            }}
-          >
-            To be eligible for coverage, on the effective date, you must {"\n"}
-            <Text>
-              1. Be a visitor to Canada or a person in Canada under a valid work
-              or student visa, a Canadian or an immigrant not eligible for
+
+          {
+            this.state.insuraceType == 1 ?
+
+              <Text
+                style={{
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: 16,
+                  padding: 5,
+                  marginTop: 10,
+                }}
+              >
+                To be eligible for coverage, on the effective date, you must {"\n"}
+                <Text>
+                  1. Be a visitor to Canada or a person in Canada under a valid work
+                  or student visa, a Canadian or an immigrant not eligible for
               benefits under a government health insurance plan; and {"\n"} 2.
               be at least 15 days of age and less than 90 years of age (less
               than 70 year of age for Premium plan); and {"\n"} 3. not be
@@ -1179,7 +1220,30 @@ class GetQuote extends React.Component {
               eating, using the toilet or getting in or out of a bed or chair)I
               confirm that all travellers are eligible to purchase this policy
             </Text>
-          </Text>
+              </Text> :
+              <Text
+                style={{
+                  color: "white",
+                  fontWeight: "bold",
+                  fontSize: 16,
+                  padding: 5,
+                  marginTop: 10,
+                }}
+              >
+                To be eligible for coverage, on the effective date, you must {"\n"}
+                <Text>
+                  1. at least 15 days old and less than 65 years of age; and
+                  2. ineligible for benefits under a government health insurance plan; and
+                  3. residing in Canada on a temporary basis; and
+                  4. one of the following:
+                  a) a student with proof of full-time admission in a recognized Canadian institution of learning; or
+                  b) a student completing post doctorate research in a recognized Canadian institution of learning; or
+                  c) the spouse or dependent child of the insured student and residing with them on a full-time basis; or
+                  the parent, legal guardian, teacher or chaperone of the insured student.
+                  I confirm that all travellers are eligible to purchase this policy
+
+                </Text>
+              </Text>}
           <View
             style={{
               alignSelf: "flex-end",
@@ -1204,7 +1268,9 @@ class GetQuote extends React.Component {
               <Text style={{}}>Yes</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={() => ModalAlert.hideAll()}
+              onPress={() => {
+                ModalAlert.alert("Any traveller not eligible to purchase coverage must be removed in order to issue the policy")
+              }}
               style={{
                 backgroundColor: "white",
                 paddingBottom: 10,
@@ -1692,7 +1758,7 @@ class GetQuote extends React.Component {
             }
             dateCanceled={() => this.setState({ showBDate: false })}
             showDate={this.state.showBDate}
-            minimumDate={this.state.minDate}
+            maximumDate={this.state.minDate}
           />
 
           <View style={{ flex: 1 }}>
@@ -2280,7 +2346,7 @@ class GetQuote extends React.Component {
         var someDate = new Date();
         var fromDate = moment().format("YYYY-MM-DD");
         var numberOfDaysToAdd = parseInt(this.state.duration);
-        someDate.setDate(someDate.getDate() + numberOfDaysToAdd);
+        someDate.setDate((someDate.getDate()- 1) + numberOfDaysToAdd);
 
         var dd = someDate.getDate();
         var mm = someDate.getMonth() + 1;
@@ -2304,7 +2370,18 @@ class GetQuote extends React.Component {
     }
   };
 
+  onPressStudentTravel = () => {
+    this.setState({ insuraceType: 2, policyLimit: "2000000" })
+  }
+
+
+  onPressVTCTravel = () => {
+    this.setState({ insuraceType: 1, policyLimit: "" })
+  }
+
   render() {
+
+    console.log("ASASASAs", this.state.activeIndex)
     return (
       <SafeAreaView style={{ flex: 1 }}>
         <ToolBarComponent
@@ -2367,6 +2444,7 @@ class GetQuote extends React.Component {
                   isSecure={false}
                   styles={{ marginStart: 10, marginTop: 8, height: 45 }}
                   placeholder={""}
+                  disable={true}
                   maxLength={100}
                   onBlur={() => {
                     this.calculateFirstAndLastDate();
@@ -2498,45 +2576,52 @@ class GetQuote extends React.Component {
 
               <Text
                 style={{ marginStart: 20, fontSize: 20, marginTop: 20, fontWeight: "bold" }}>
-                Select Product</Text>
+                {this.state.disableAll ? '' : 'Select '}Product</Text>
               <View
                 style={{
                   flexDirection: "row",
                   alignSelf: "center",
                   marginTop: 10,
                 }}>
-                <TouchableOpacity
-                  onPress={() => this.setState({ insuraceType: 1 })}
-                  disabled={this.state.disableAll}
-                  style={{
-                    padding: 10,
-                    width: "44%",
-                    borderRadius: 10,
-                    backgroundColor: this.state.insuraceType == 1 ? "#24b6b7" : "white",
-                    borderWidth: 2,
-                    borderColor: '#24b6b7',
-                  }}
-                >
-                  <Text
-                    style={{
-                      textAlign: "center",
-                      color: this.state.insuraceType == 1 ? "white" : "black",
-                      fontWeight: "bold",
-                      fontSize: 16,
-                    }}
-                  >
-                    VTC Product
+                {
+                  !this.state.disableAll ?
+                    <TouchableOpacity
+                      onPress={() => this.onPressVTCTravel()}
+                      disabled={this.state.disableAll}
+                      style={{
+                        padding: 10,
+                        flex: 1,
+                        marginEnd: 20,
+                        marginStart: 20,
+                        borderRadius: 10,
+                        backgroundColor: this.state.insuraceType == 1 ? "#24b6b7" : "white",
+                        borderWidth: 2,
+                        borderColor: '#24b6b7',
+                      }}
+                    >
+                      <Text
+                        style={{
+                          textAlign: "center",
+                          color: this.state.insuraceType == 1 ? "white" : "black",
+                          fontWeight: "bold",
+                          fontSize: 16,
+                        }}
+                      >
+                        VTC Product
                 </Text>
-                </TouchableOpacity>
+                    </TouchableOpacity>
+                    : null}
 
                 <TouchableOpacity
-                  onPress={() => this.setState({ insuraceType: 2 })}
+                  onPress={() => this.onPressStudentTravel()}
                   disabled={this.state.disableAll}
                   style={{
                     padding: 10,
                     marginStart: 10,
-                    width: "44%",
+                    marginEnd: 20,
+                    marginStart: 20,
                     borderRadius: 10,
+                    flex: 1,
                     borderWidth: 2,
                     borderColor: '#24b6b7',
                     backgroundColor: this.state.insuraceType == 2 ? "#24b6b7" : "white",
@@ -2560,29 +2645,59 @@ class GetQuote extends React.Component {
             </View>
 
 
-            {this.state.insuraceType == 2 && <DropDownView
-              styles={{
-                width: "100%",
-                alignSelf: "center",
-                marginTop: 10,
-                marginStart: 10
-              }}
-              textstyles={{
-                marginStart: 20
-              }}
-              childData={[{
-                label: "International Student Policy - Single",
-                value: "Daily"
-              },
-              {
-                label: "International Student Policy - Annual",
-                value: "Annual"
-              }]}
-              value={this.state.studentPolicyOptions}
-              disabled={this.state.disableAll}
-              onItemSelected={(value) => this.setState({ studentPolicyOptions: value })}
-              dropDownTitle={"Student Policy Option"}
-            />}
+            {this.state.insuraceType == 2 ?
+
+              this.state.disableAll ?
+              <View>
+                <Text style={{
+                  fontWeight: 'bold',
+                  fontSize: 20,
+                  color: 'black',
+                  marginTop: 10,
+                  marginStart: 20
+                }}>{`Policy Option:\n` + this.state.studentPolicyOptions}</Text>
+              </View>
+              :
+              <DropDownView
+                styles={{
+                  width: "100%",
+                  alignSelf: "center",
+                  marginTop: 10,
+                  marginStart: 10
+                }}
+                textstyles={{
+                  marginStart: 20
+                }}
+                childData={[{
+                  label: "International Student Policy - Single",
+                  value: "Daily"
+                },
+                {
+                  label: "International Student Policy - Annual",
+                  value: "Annual"
+                }]}
+                value={this.state.studentPolicyOptions}
+                disabled={this.state.disableAll}
+                onItemSelected={(value) => {
+
+                  if(this.state.fromDate == undefined || this.state.fromDate == ""){
+                    ModalAlert.error("Please select First date of cover")
+                    return
+                  }
+                  if(value == "Annual"){
+                    this.setState({
+                      duration : "365",
+                      durationInt:365
+                    },()=>{
+                      this.calculateFirstAndLastDate()
+                    }) 
+                  }
+                  this.setState({ studentPolicyOptions: value })
+                }}
+                dropDownTitle={"Student Policy Option"}
+              />
+            :null
+            }
 
 
             {this.state.insuraceType == 1 && <View
@@ -2708,35 +2823,61 @@ class GetQuote extends React.Component {
                   marginTop: 20,
                 }}
               >
-                Select Plan Type
+                {this.state.disableAll ? '' : 'Select '}Plan Type
               </Text>
+              {this.state.disableAll ?
 
-              <FlatList
-                data={this.state.plans}
-                style={{ width: "100%", marginStart: 16, marginEnd: 10, alignSelf: "center" }}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                renderItem={this.renderItemPremium}
-              />
+                <View>
+                  <Text style={{
+                    fontWeight: 'bold',
+                    fontSize: 20,
+                    color: 'black',
+                    marginTop: 10,
+                    marginStart: 20
+                  }}>{this.state.plans[this.state.activeIndex] != undefined && this.state.plans[this.state.activeIndex].plan_name}</Text>
+                </View>
+
+                : <FlatList
+                  data={this.state.plans}
+                  style={{ width: "100%", marginStart: 16, marginEnd: 10, alignSelf: "center" }}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  renderItem={this.renderItemPremium}
+                />}
+
+
             </View>
 
             <View style={{ flexDirection: "row" }}>
-              <DropDownView
-                styles={{
-                  width: "45%",
-                  alignSelf: "flex-start",
-                  marginStart: 10,
-                  marginTop: 10,
-                }}
-                childData={this.state.insuraceType == 1 ? this.state.policyData
-                  : this.state.studentPolicy}
-                value={this.state.policyLimit}
-                disabled={this.state.disableAll}
-                onItemSelected={(value) =>
-                  this.setState({ policyLimit: value, })
-                }
-                dropDownTitle={"Policy Limit"}
-              />
+              {this.state.disableAll ?
+
+                <View>
+                  <Text style={{
+                    fontWeight: 'bold',
+                    fontSize: 16,
+                    color: 'black',
+                    marginTop: 20,
+                    marginStart: 20
+                  }}>Policy Limit{'\n\n'}{this.state.policyLimit}</Text>
+                </View>
+
+                : <DropDownView
+                  styles={{
+                    width: "45%",
+                    alignSelf: "flex-start",
+                    marginStart: 10,
+                    marginTop: 10,
+                  }}
+                  childData={this.state.insuraceType == 1 ? this.state.policyData
+                    : this.state.studentPolicy}
+                  value={this.state.policyLimit}
+                  disabled={this.state.disableAll || this.state.insuraceType == 2}
+                  onItemSelected={(value) =>
+                    this.setState({ policyLimit: value, })
+                  }
+                  dropDownTitle={"Policy Limit"}
+                />}
+
               {this.state.insuraceType == 1 && <DropDownView
                 styles={{
                   width: "47%",
@@ -2759,26 +2900,29 @@ class GetQuote extends React.Component {
                 marginTop: 20,
                 marginBottom: 20,
               }}>
-              <TouchableOpacity
-                onPress={() => this.onPressBenefit()}
-                style={{
-                  padding: 10,
-                  width: this.state.disableAll ? "90%" : "44%",
-                  borderRadius: 10,
-                  backgroundColor: "rgb(96,125,139)",
-                }}
-              >
-                <Text
+              {this.state.insuraceType == 1?
+                !this.state.disableAll &&
+
+                <TouchableOpacity
+                  onPress={() => this.onPressBenefit()}
                   style={{
-                    textAlign: "center",
-                    color: "white",
-                    fontWeight: "bold",
-                    fontSize: 16,
+                    padding: 10,
+                    width: this.state.disableAll ? "90%" : "44%",
+                    borderRadius: 10,
+                    backgroundColor: "rgb(96,125,139)",
                   }}
                 >
-                  See Benefit {"\n"} Comparison
+                  <Text
+                    style={{
+                      textAlign: "center",
+                      color: "white",
+                      fontWeight: "bold",
+                      fontSize: 16,
+                    }}
+                  >
+                    See Benefit {"\n"} Comparison
                 </Text>
-              </TouchableOpacity>
+                </TouchableOpacity>  : null}
 
               {!this.state.disableAll && (
                 <TouchableOpacity
@@ -2807,7 +2951,7 @@ class GetQuote extends React.Component {
           </View>
 
           {this.state.showPolicyHolderData && (
-            <View style={{ marginTop: 30 }}>
+            <View style={{ marginTop: 0 }}>
               <View
                 style={{
                   flexDirection: "row",
@@ -2877,7 +3021,7 @@ class GetQuote extends React.Component {
                   }}
                 >
                   <Text
-                    style={{ fontWeight: "bold", fontSize: 16, width: "25%" }}
+                    style={{ fontWeight: "bold", fontSize: 16, width: "28%" }}
                   >
                     Period
                   </Text>
@@ -2894,7 +3038,37 @@ class GetQuote extends React.Component {
                   }}
                 >
                   <Text
-                    style={{ fontWeight: "bold", fontSize: 16, width: "25%" }}
+                    style={{ fontWeight: "bold", fontSize: 16, width: "28%" }}
+                  >
+                    Tax
+                  </Text>
+                  <Text style={{}}>CAD 0.00</Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    marginTop: 10,
+                    alignItems: "center",
+                    marginStart: 20,
+                  }}
+                >
+                  <Text
+                    style={{ fontWeight: "bold", fontSize: 16, width: "28%" }}
+                  >
+                    Adjustment
+                  </Text>
+                  <Text style={{}}>CAD {this.state.adjustmentAmt}</Text>
+                </View>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    marginTop: 10,
+                    alignItems: "center",
+                    marginStart: 20,
+                  }}
+                >
+                  <Text
+                    style={{ fontWeight: "bold", fontSize: 16, width: "28%" }}
                   >
                     Total
                   </Text>
@@ -3149,7 +3323,7 @@ class GetQuote extends React.Component {
                   activeOpacity={0.7}
                   style={styles.containerBtn}
                 >
-                  <Text style={styles.title}>{this.state.isEdit? `Update Quote` : `GET Quote`}</Text>
+                  <Text style={styles.title}>{this.state.isEdit ? `Update Quote` : `GET Quote`}</Text>
                 </TouchableOpacity>
               )}
 
@@ -3171,8 +3345,12 @@ class GetQuote extends React.Component {
 
 
   onPressConfirmAndPay = () => {
+
+    let name = this.state.policyName.split(" ")
+    let lastName = this.state.policyName.replace(name[0]+" ","")
     let obj = {
-      firstName: this.state.policyName,
+      firstName: name[0],
+      lastName: lastName,
       email: this.state.policyEmail,
       postalCode: this.state.policyPostalCode,
       phoneNumber: this.state.policyNumber,
@@ -3181,7 +3359,7 @@ class GetQuote extends React.Component {
       firstDate: this.state.fromDate,
       paymentFrequency: this.state.paymentFrequency,
       id: this.state.id,
-      insuranceType : this.state.insuraceType
+      insuranceType: this.state.insuraceType
     };
 
     this.props.navigation.navigate("Payment", { data: obj });
@@ -3201,15 +3379,15 @@ class GetQuote extends React.Component {
   };
 
 
-  onPressSubmit = () =>{
-    if(this.state.isEdit){
+  onPressSubmit = () => {
+    if (this.state.isEdit) {
       this.state.insuraceType == 1 ? this.onPressEditQuote() : this.onPressEditQuote_stc()
-    }else{
+    } else {
       this.state.insuraceType == 1 ? this.onPressGetQuote() : this.onPressGetQuote_stc()
     }
   }
 
-  onPressEditQuote_stc = ()=>{
+  onPressEditQuote_stc = () => {
     if (this.validatePolicyHolderDetails()) {
       let loader = ModalAlert.createProgressModal("Please wait...", false);
       let formData = new FormData()
@@ -3241,6 +3419,13 @@ class GetQuote extends React.Component {
           "date_of_birth[]",
           this.state.benefiaryData[index].dob
         );
+
+        if (this.state.benefiaryData[index].id) {
+          formData.append("insured_id[]", this.state.benefiaryData[index].id);
+        } else {
+          formData.append("insured_id[]", '');
+        }
+
       }
 
 
@@ -3267,6 +3452,13 @@ class GetQuote extends React.Component {
       formData.append("policy_holder_address", this.state.policyAddress);
 
       formData.append("Waiting_period", this.state.waitingPeriod);
+
+      let del = this.state.delInsuredIds.slice(0, this.state.delInsuredIds.length - 1)
+
+
+
+
+      formData.append("del_insured_ids", del);
 
       formData.append("extend_policy_id", 0);
       formData.append("country_id", 1);
