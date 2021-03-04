@@ -72,7 +72,7 @@ class MyCommission extends React.Component {
 
         let data = {
             user_id:this.state.userId,
-            role:this.state.role,
+            // role:this.state.role,
         }
 
         console.log(item.title)

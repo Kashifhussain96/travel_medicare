@@ -34,6 +34,7 @@ class MyProfile extends React.Component {
         corporationData: {},
         refrenceData: {}
       },
+      role :"1"
     };
     this.springValue = new Animated.Value(1);
     this.fadeInOpacity = new Animated.Value(0);
@@ -98,11 +99,11 @@ class MyProfile extends React.Component {
         }, () => {
           console.log(this.state.userData)
         });
-    Modal.hideAll()
+        Modal.hideAll()
 
       })
       .catch((res) => {
-    Modal.hideAll()
+        Modal.hideAll()
 
       });
   };
@@ -120,72 +121,94 @@ class MyProfile extends React.Component {
         </View>
 
         <ScrollView>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>First Name*</Text>
           <TextInputComponent
             isSecure={false}
             placeholder={"First Name"}
+            styles={{ marginTop: 5 }}
             maxLength={100}
             value={this.state.userData.userData.first_name}
             disable={true}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>Last Name*</Text>
           <TextInputComponent
             isSecure={false}
             placeholder={"Last Name"}
             maxLength={100}
+            styles={{ marginTop: 5 }}
             value={this.state.userData.userData.last_name}
             disable={true}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>Email Address*</Text>
+
           <TextInputComponent
             isSecure={false}
             placeholder={"Email Address"}
             value={this.state.userData.userData.email}
             maxLength={100}
+            styles={{ marginTop: 5 }}
             disable={true}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>Website</Text>
+
           <TextInputComponent
             isSecure={false}
             placeholder={"Website"}
             value={this.state.userData.userData.website}
             maxLength={100}
+            styles={{ marginTop: 5 }}
             disable={true}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>Phone*</Text>
+
           <TextInputComponent
             isSecure={false}
             placeholder={"Phone"}
             value={this.state.userData.userData.phone}
             disable={true}
+            styles={{ marginTop: 5 }}
             maxLength={100}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>Address*</Text>
+
           <TextInputComponent
             isSecure={false}
             placeholder={"Address"}
             value={this.state.userData.userData.address}
             maxLength={100}
+            styles={{ marginTop: 5 }}
             disable={true}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          {/* <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>First Name*</Text>
+
           <TextInputComponent
             isSecure={false}
             placeholder={"Province License"}
+            styles={{ marginTop: 5 }}
             maxLength={100}
             value={this.state.userData.userData.province_licensed}
             disable={true}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
-          />
+          /> */}
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>Fax</Text>
+
           <TextInputComponent
             isSecure={false}
             placeholder={"Fax"}
+            styles={{ marginTop: 5 }}
             disable={true}
             value={this.state.userData.userData.fax}
             maxLength={100}
@@ -195,25 +218,31 @@ class MyProfile extends React.Component {
 
           <View style={{ width: '100%', backgroundColor: 'gray', height: 1, alignSelf: 'center', marginTop: 20 }} />
           <Text style={[styles.home, { marginTop: 10 }]}>Liecense Details</Text>
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>License No. *</Text>
 
           <TextInputComponent
             isSecure={false}
             value={this.state.userData.licenceData.licence_no}
             placeholder={"Licence No."}
             maxLength={100}
+            styles={{ marginTop: 5 }}
             disable={true}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>License Expiry Date *</Text>
+
           <TextInputComponent
             isSecure={false}
             placeholder={"Licence Expiry Date"}
             maxLength={100}
+            styles={{ marginTop: 5 }}
             disable={true}
             value={this.state.userData.licenceData.licence_expiry_date}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>{"E&O Policy No. *"}</Text>
 
 
           <TextInputComponent
@@ -221,14 +250,18 @@ class MyProfile extends React.Component {
             placeholder={"E&O Policy No."}
             maxLength={100}
             disable={true}
+            styles={{ marginTop: 5 }}
             value={this.state.userData.licenceData.e_o_policy_no}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
             isShowDrawable={false}
           />
+          <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>{"E&O Policy Expiry Date *"}</Text>
+
           <TextInputComponent
             isSecure={false}
             placeholder={"E&O Policy Expiry Date "}
             maxLength={100}
+            styles={{ marginTop: 5 }}
             disable={true}
             value={this.state.userData.licenceData.e_o_policy_expiry_date}
             onChangeText={(text) => this.setState({ confirmPassword: text })}
@@ -236,7 +269,7 @@ class MyProfile extends React.Component {
           />
 
           <View style={{ flexDirection: 'row' }}>
-            <Text style={{ marginStart: 20, marginTop: 20, color: 'black', fontSize: 20 }}>Provider</Text>
+            <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>Provider</Text>
 
             <TouchableOpacity onPress={() => Linking.openURL(this.state.userData.licenceData.provider)}>
               <Image style={{ width: 30, height: 30, marginStart: 50, marginTop: 20 }} source={require('../../assets/download.png')} />
@@ -257,6 +290,7 @@ class MyProfile extends React.Component {
                 { label: "No", value: "0" },
                 { label: "Yes", value: "1" },
               ]}
+              value={this.state.role}
               onItemSelected={(value) => this.setState({ role: value })}
               dropDownTitle={""}
             />
@@ -284,15 +318,19 @@ class MyProfile extends React.Component {
 
                 </View>
 
+                <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>{"Corporation Name *"}</Text>
+
                 <TextInputComponent
                   isSecure={false}
                   placeholder={"Corporation Name"}
                   maxLength={100}
+                  style={{ marginTop: 5 }}
                   disable={true}
                   value={this.state.userData.corporationData.corporation_name}
                   onChangeText={(text) => this.setState({ confirmPassword: text })}
                   isShowDrawable={false}
                 />
+                <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>{"BIN No of the Corporation *"}</Text>
 
 
                 <TextInputComponent
@@ -300,39 +338,46 @@ class MyProfile extends React.Component {
                   placeholder={"BIN No of the Corporation"}
                   maxLength={100}
                   disable={true}
+                  style={{ marginTop: 5 }}
                   value={this.state.userData.corporationData.bin_no_of_corporation}
                   onChangeText={(text) => this.setState({ confirmPassword: text })}
                   isShowDrawable={false}
                 />
 
+                <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>{"Date Of Expiry *"}</Text>
 
                 <TextInputComponent
                   isSecure={false}
                   placeholder={"Date Of Expiry"}
                   maxLength={100}
                   disable={true}
+                  style={{ marginTop: 5 }}
                   value={this.state.userData.corporationData.corporation_e_o_policy_expiry_date}
                   onChangeText={(text) => this.setState({ confirmPassword: text })}
                   isShowDrawable={false}
                 />
 
 
+                <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>{"E&O updated with Corporation name *"}</Text>
 
                 <TextInputComponent
                   isSecure={false}
                   placeholder={"E&O updated with Corporation name"}
                   maxLength={100}
+                  style={{ marginTop: 5 }}
                   disable={true}
                   value={this.state.userData.corporationData.e_o_corporation_name}
                   onChangeText={(text) => this.setState({ confirmPassword: text })}
                   isShowDrawable={false}
                 />
 
+                <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 10 }}>{"Corporation E&O Expiry Date *"}</Text>
 
                 <TextInputComponent
                   isSecure={false}
                   placeholder={"Corporation E&O Expiry Date "}
                   maxLength={100}
+                  style={{ marginTop: 5 }}
                   disable={true}
                   value={this.state.userData.corporationData.corporation_licence_expiry_date}
                   onChangeText={(text) => this.setState({ confirmPassword: text })}
@@ -502,9 +547,9 @@ const styles = StyleSheet.create({
   forms_styles: {
     marginStart: 20,
     fontSize: 17,
-    marginBottom: 5,
     marginTop: 10,
-    fontWeight: "600",
+
+    fontWeight: "bold",
     width: "100%",
   },
   forms_spinner: {

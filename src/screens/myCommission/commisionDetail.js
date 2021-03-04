@@ -26,8 +26,8 @@ class CommisssionDetail extends React.Component {
             data: [],
             requestData: props.navigation.state.params.requestData,
             pageNo: 1,
-            from: moment().format('YYYY-MM-DD'),
-            to: moment().format('YYYY-MM-DD'),
+            from: "",
+            to: "",
 
         };
 
@@ -57,8 +57,6 @@ class CommisssionDetail extends React.Component {
         SSOServices.getAllMyCommissionList(formData).then(res => {
             isLoad = false;
 
-
-
             if (pageNo == 1) {
                 this.setState({
                     data: res.data,
@@ -67,6 +65,7 @@ class CommisssionDetail extends React.Component {
             } else {
                 let array = [...this.state.data, ...res.data]
                 console.log(pageNo, this.state.data, array)
+
                 this.setState({
                     data: array,
                     pageNo: pageNo
@@ -110,6 +109,16 @@ class CommisssionDetail extends React.Component {
                     <Text style={styles.rightText}>{item.policy_no}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
+                    <Text style={styles.leftText}>Insured Name:</Text>
+
+                    <Text style={styles.rightText}>{item.insured_name}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
+                    <Text style={styles.leftText}>Type:</Text>
+
+                    <Text style={styles.rightText}>{item.type}</Text>
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
                     <Text style={styles.leftText}>Policy Issue Date:</Text>
 
                     <Text style={styles.rightText}>{item.date_of_issue}</Text>
@@ -117,7 +126,7 @@ class CommisssionDetail extends React.Component {
                 <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
                     <Text style={styles.leftText}>Comm. Amt (CAD): </Text>
 
-                    <Text style={styles.rightText}>{item.commission_amount}</Text>
+                    <Text style={[styles.rightText,{color: parseInt(item.commission_amount) > 0 ? 'black' : 'red'}]}>{item.commission_amount}</Text>
                 </View>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-evenly' }}>
                     <Text style={styles.leftText}>Premium Amt (CAD):</Text>
@@ -288,7 +297,9 @@ class CommisssionDetail extends React.Component {
                 {this.renderButtons()}
 
 
-                <InfinityScrollView onScrollReachedEnd={this._onScrollReachedEnd}>
+                <InfinityScrollView 
+                // onScrollReachedEnd={this._onScrollReachedEnd}
+                >
                     <View>
 
                         {this.state.data.length > 0 ?

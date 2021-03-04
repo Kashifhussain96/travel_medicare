@@ -49,6 +49,7 @@ class MyPolicy extends React.Component {
         formData.append("from_data", this.state.fromDate)
         formData.append("to_data", this.state.toDate)
         formData.append("selected_role", this.state.user)
+
         SSOServices.getPolicy(formData).then(res => {
             this.setState({
                 data: res.data
@@ -388,7 +389,7 @@ class MyPolicy extends React.Component {
 
 
     emailPolicy = (id) => {
-        let modal = ModalAlert.createProgressModal('Sending Email...', false)
+       let modal = ModalAlert.createProgressModal('Sending Email...', false)
         let formData = new FormData();
         formData.append("user_id", this.props.userData.user_id);
         formData.append("quotation_id", id);
@@ -396,12 +397,11 @@ class MyPolicy extends React.Component {
             ModalAlert.hide(modal)
             ModalAlert.createModal({ text: 'Alert' }, { text: res.message }, false,
                 ModalAlert.createSecondaryButton('Ok', () => {
-
-                    ModalAlert.hideAll()
+                   ModalAlert.hideAll()
                 }))
         }).catch(err => {
             ModalAlert.hide(modal)
-            ModalAlert.error(err)
+           ModalAlert.error(err.message)
         })
     }
 

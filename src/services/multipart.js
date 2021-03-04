@@ -23,7 +23,7 @@ const requestMultiPart = async function (options, raiseFullError = false) {
 
         console.log("Base URL::::>", getBaseUrl(true))
         console.log("Request Data:::>", options)
-        console.log("Bearer Data:::>", "Bearer "+res)
+        // console.log("Bearer Data:::>", "Bearer "+res)
 
         const onSuccess = function (response) {
             console.log("Response Data Multipart:::>", response.data)

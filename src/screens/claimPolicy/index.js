@@ -84,7 +84,7 @@ class PolicyClaimScreen extends React.Component {
             let modal = ModalAlert.createProgressModal('Please wait...',false)
       
             formData.append("user_id",this.props.userData.userData.user_id);
-            formData.append("policy_id", data.poilcy_details.extend_policy_id);
+            formData.append("policy_id", data.poilcy_details.id);
             formData.append("policy_no", data.poilcy_details.policy_no);
             formData.append("claimant_name",this.state.userName);
             formData.append("policy_holder_addr", this.state.address);
