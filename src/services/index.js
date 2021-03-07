@@ -41,7 +41,7 @@ const request = async function (options, raiseFullError = false) {
     
     
         const onSuccess = function (response) {
-            console.log("Response Data:::>",response)
+            console.log("Response Data:::>",response.data)
             if(response.data.status){
                 return Promise.resolve(response.data);
             }else{

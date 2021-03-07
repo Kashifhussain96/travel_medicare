@@ -27,33 +27,55 @@ class MyPolicy extends React.Component {
             toDate: '',
             fromDate: '',
             user: '',
-            role: ''
+            role: '',
+            roles: [],
+            users: [],
+            product: ''
         };
 
     }
 
 
     async componentDidMount() {
-        this.getData();
+        this.getData('', '', '', '');
+        this.getRole();
     }
 
 
 
 
 
-    getData = () => {
+    getData = (product, role, fromDate, toDate) => {
         let modal = ModalAlert.createProgressModal('Fetching Data...', false)
         let formData = new FormData();
         formData.append("user_id", this.props.userData.user_id);
         formData.append("role", this.props.userData.role);
-        formData.append("from_data", this.state.fromDate)
-        formData.append("to_data", this.state.toDate)
-        formData.append("selected_role", this.state.user)
+
+        if (fromDate != "") {
+            formData.append("from_data", fromDate)
+        }
+        if (toDate != "") {
+            formData.append("to_data", toDate)
+        }
+        if (role != "") {
+            formData.append("selected_role", role)
+        }
+        if (product != "") {
+            formData.append("product", product)
+        }
 
         SSOServices.getPolicy(formData).then(res => {
-            this.setState({
-                data: res.data
-            })
+
+            if(res.data?.constructor === Array){
+                this.setState({
+                    data: res.data
+                })
+            }else{
+                this.setState({
+                    data: []
+                })
+            }
+          
             ModalAlert.hideAll()
         }).catch(err => {
             ModalAlert.hideAll()
@@ -95,6 +117,7 @@ class MyPolicy extends React.Component {
             fromDate: '',
             toDate: '',
             user: '',
+            product:'',
             role: ''
         }, () => {
             this.getData()
@@ -102,33 +125,7 @@ class MyPolicy extends React.Component {
     }
 
     onPressSearch = () => {
-
-        // if ((this.state.role == '')  || (this.state.fromDate == '' && this.state.toDate == '')) {
-        //    // ModalAlert.error("Please select Role or From Date to To Date")
-        //     // alert((this.state.role == '')  || (this.state.fromDate == '' && this.state.toDate == ''))
-        //     alert(this.state.role == '')
-        //     return
-        // }
-
-
-
-        if (this.state.role == "") {
-            if (this.state.fromDate == '' && this.state.toDate == '') {
-                ModalAlert.error("Please select Role or From Date to To Date")
-                return
-            }
-        }
-
-
-
-        var d1 = Date.parse(this.state.fromDate);
-        var d2 = Date.parse(this.state.toDate);
-        if (d2 < d1) {
-            ModalAlert.error("From Date should be lesser than To Date")
-            return
-        }
-
-        this.getData()
+        this.getData(this.state.product, this.state.role, this.state.fromDate, this.state.toDate)
     }
 
 
@@ -228,14 +225,14 @@ class MyPolicy extends React.Component {
         ModalAlert.createOptionModal(this.renderDownloadButtons(item), false, { height: "60%" })
     }
 
-    downloadUrl=(url)=>{
+    downloadUrl = (url) => {
 
-        if(url.startsWith("https") || url.startsWith("http")){
-            Linking.openURL(url) 
-        }else if(url.startsWith("/var")){
-            let actualUrl = url.replace("/var/www/travelmedicare.com/public_html","")
-            Linking.openURL("https://www.travelmedicare.com"+actualUrl)
-        }else{
+        if (url.startsWith("https") || url.startsWith("http")) {
+            Linking.openURL(url)
+        } else if (url.startsWith("/var")) {
+            let actualUrl = url.replace("/var/www/travelmedicare.com/public_html", "")
+            Linking.openURL("https://www.travelmedicare.com" + actualUrl)
+        } else {
             ModalAlert.alert("Invalid Document Link")
         }
 
@@ -251,7 +248,7 @@ class MyPolicy extends React.Component {
 
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 20 }}>
                     <Text style={{ fontSize: 18, fontWeight: '600' }}>{item.policy_docs[0].document_name}</Text>
-                    <TouchableOpacity onPress={() => {this.downloadUrl(item.policy_docs[0].doc) }}>
+                    <TouchableOpacity onPress={() => { this.downloadUrl(item.policy_docs[0].doc) }}>
                         <Image style={{ height: 20, width: 20 }} source={require('../../assets/download.png')} />
                     </TouchableOpacity>
                 </View>
@@ -293,7 +290,7 @@ class MyPolicy extends React.Component {
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
                 <Text style={styles.listItemText}>{item.role_name}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
-                <Text style={styles.listItemText}>{item.product == "VTC" ? `Visitors to Canada` : `Students to Canada`}</Text>
+                <Text style={styles.listItemText}>{item.product == "VTC" || item.product == "" ? `Visitors to Canada` : `Students to Canada`}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
                 <Text style={styles.listItemText}>{item.policy_no}</Text>
                 <View style={{ height: 80, backgroundColor: 'black', width: 1 }} />
@@ -368,13 +365,28 @@ class MyPolicy extends React.Component {
                             <Text style={[styles.itemText, { marginStart: 10 }]}>Action</Text>
                         </View>
 
+                        {
+                            this.state.data.length == 0 ? <Text
+                                    style={{
+                                        flex: 1,
+                                        marginStart: 50,
+                                        fontSize: 30,
+                                        fontWeight: "600",
+                                        marginTop: 100,
+                                    }}
+                                >
+                                No Data
+                          </Text> :
+                                <FlatList
+                                    data={this.state.data}
+                                    scrollEnabled={false}
+                                    showsHorizontalScrollIndicator={false}
+                                    showsVerticalScrollIndicator={false}
+                                    renderItem={this.renderItem} />
+                        }
 
-                        <FlatList
-                            data={this.state.data}
-                            scrollEnabled={false}
-                            showsHorizontalScrollIndicator={false}
-                            showsVerticalScrollIndicator={false}
-                            renderItem={this.renderItem} />
+
+
                     </View>
 
                 </ScrollView>
@@ -389,7 +401,7 @@ class MyPolicy extends React.Component {
 
 
     emailPolicy = (id) => {
-       let modal = ModalAlert.createProgressModal('Sending Email...', false)
+        let modal = ModalAlert.createProgressModal('Sending Email...', false)
         let formData = new FormData();
         formData.append("user_id", this.props.userData.user_id);
         formData.append("quotation_id", id);
@@ -397,14 +409,86 @@ class MyPolicy extends React.Component {
             ModalAlert.hide(modal)
             ModalAlert.createModal({ text: 'Alert' }, { text: res.message }, false,
                 ModalAlert.createSecondaryButton('Ok', () => {
-                   ModalAlert.hideAll()
+                    ModalAlert.hideAll()
                 }))
         }).catch(err => {
             ModalAlert.hide(modal)
-           ModalAlert.error(err.message)
+            ModalAlert.error(err.message)
         })
     }
 
+    getRole = () => {
+        let modal = ModalAlert.createProgressModal("Fetching Data...", false);
+        SSOServices.getRole(this.props.userData.role)
+            .then((res) => {
+                ModalAlert.hide(modal);
+                let data = []
+                for (let i = 0; i < res.data.length; i++) {
+                    data.push({ value: res.data[i].role, label: res.data[i].role_name })
+
+                }
+
+                this.setState({
+                    roles: data
+                })
+            })
+            .catch((err) => {
+                ModalAlert.hide(modal);
+            });
+    }
+
+    getAllUsersRoleWise = (role) => {
+        let modal = ModalAlert.createProgressModal("Fetching Data...", false);
+        this.setState({
+            users : [],
+            user:''
+        })
+        let formData = new FormData();
+        formData.append("role", role);
+        formData.append("user_id", this.props.userData.user_id);
+        formData.append("login_role", this.props.userData.role);
+        SSOServices.getAllUsersRoleWise(formData)
+            .then((res) => {
+                ModalAlert.hide(modal);
+                let data = []
+
+                if(res.data?.constructor === Array){
+                    for (let i = 0; i < res.data.length; i++) {
+                        data.push({ value: res.data[i].role, label: res.data[i].user_name })
+    
+                    }
+                    this.setState({
+                        users: data,
+                    })
+                }else{
+                    this.setState({
+                        users: [],
+                    })
+                }
+               
+            })
+            .catch((err) => {
+                ModalAlert.hide(modal);
+            });
+    }
+
+
+    onItemSelectedDateList = (value) => {
+
+        let date = getDateStringFromDate(value);
+
+        if (this.state.dateStatus == 1) {
+            this.setState({
+                fromDate: date,
+                showDate: false
+            })
+        } else {
+            this.setState({
+                toDate: date,
+                showDate: false
+            })
+        }
+    }
 
 
     render() {
@@ -416,24 +500,85 @@ class MyPolicy extends React.Component {
                     navigation={this.props.navigation} />
                 <ScrollView>
 
+                    <DropDownView
+                        childData={[
+                            { label: "VTC Product", value: "VTC" },
+                            { label: "STC Product", value: "STC" },
+                        ]}
+                        styles={{ width: '100%' }}
+                        value={this.state.product}
+                        onItemSelected={(value) => {
+                            this.setState({
+                                product: value
+                            })
+                        }}
+                        dropDownTitle={"Select Product:"}
+                    />
+
                     <View style={styles.flexDirection}>
                         <DropDownView
-                            childData={[
-                                { label: 'MGA', value: 'MGA' },
-                                { label: 'AGA', value: 'AGA' },
-                                { label: 'Advisor', value: 'Advisor' },
-                            ]}
-                            onItemSelected={(value) => this.setState({ role: value })}
+                            childData={this.state.roles}
                             value={this.state.role}
-                            dropDownTitle={"Select Role:"} />
+                            onItemSelected={(value) => {
+                                this.setState({ role: value }, () => {
+                                    this.getAllUsersRoleWise(value)
+                                })
+
+                            }}
+                            dropDownTitle={"Select Role:"}
+                        />
                         <DropDownView
-                            childData={this.state.userList}
+                            childData={this.state.users}
                             value={this.state.user}
-                            onItemSelected={(value) => this.setState({ user: value })}
-                            dropDownTitle={"Select User:"} />
+                            onItemSelected={(value) => {
+                                this.setState({ user: value })
+                            }}
+                            dropDownTitle={"Select User:"}
+                        />
                     </View>
 
-                    {this.renderDatesContainer()}
+                    <View style={styles.datesContainer}>
+                        <View style={{ width: "50%" }}>
+                            <Text>From Date</Text>
+                            <CalenderView
+                                style={{ width: "95%", marginEnd: 20 }}
+                                onPress={() => { }}
+                                showCalender={true}
+                                onPress={() => {
+                                    this.setState({
+                                        showDate: true,
+                                        dateStatus: 1
+                                    })
+                                }}
+                                title={this.state.fromDate}
+                            />
+                        </View>
+                        <View style={{ width: "50%" }}>
+                            <Text>To Date</Text>
+                            <CalenderView
+                                style={{ width: "95%", marginEnd: 10 }}
+                                showCalender={true}
+                                onPress={() => {
+                                    this.setState({
+                                        showDate: true,
+                                        dateStatus: 2
+                                    })
+                                }}
+                                title={this.state.toDate}
+                            />
+                        </View>
+                    </View>
+
+                    <DatePicker
+                        datePicked={(data) =>
+                            this.onItemSelectedDateList(data)
+                        }
+                        dateCanceled={() => this.setState({ showDate: false })}
+                        showDate={this.state.showDate}
+                    />
+
+
+
 
                     {this.renderButtons()}
 

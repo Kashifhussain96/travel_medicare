@@ -44,7 +44,7 @@ export default class CheckBoxComponent extends React.Component {
             <TouchableOpacity onPress={()=> this.onClickPress()} activeOpacity={0.7} style={[styles.container,this.props.style]}>
                 <Image source={isChecked ? require('../../assets/checkbox.png') :  require('../../assets/unCheck.png')}
                     style={[styles.arrow]} />
-                <Text style={styles.title}>{this.props.title}</Text>
+                <Text style={[styles.title,this.props.titleStyles]}>{this.props.title}</Text>
             </TouchableOpacity>
         )
     }

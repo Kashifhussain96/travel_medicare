@@ -54,6 +54,7 @@ class cancelpolicy extends React.Component {
             options: 'Select Options',
             financial: "",
             insuredList: [],
+            documentTypes: [],
             refundMidTermData: [],
             midTermCancelDate: '',
             refundList: [],
@@ -76,6 +77,12 @@ class cancelpolicy extends React.Component {
             nonFinRemarks: '',
             finInsuredDOB: '',
             voidList: [],
+            voidListSV: [],
+            voidListSVTemp: [],
+            product: '',
+            visaType: -1,
+            studentVisa: '',
+            voidType: -1
         };
 
     }
@@ -85,16 +92,77 @@ class cancelpolicy extends React.Component {
         this.getActiveEnsured()
         this.getVoidDocument()
         this.getCancel();
-        this.onPressCancelOptions()
+        this.onPressCancelOptions();
+        this.getQuoteData()
+    }
+    getQuoteData = () => {
+        let id = this.props.navigation.state.params.quotation_id
+        SSOServices.getQuoteById(id).then(res => {
+            this.setState({
+                product: res?.data?.getquoteData?.product,
+                studentVisa: res?.data?.getquoteData?.student_policy_option
+            })
+        }).catch(err => {
+        })
     }
 
 
     getVoidDocument = () => {
         SSOServices.getVoidDocument().then(res => {
-
+            let data = []
+            for (let i = 0; i < res.data.length; i++) {
+                data.push({ label: res.data[i], value: res.data[i] })
+            }
+            this.setState({
+                documentTypes: data
+            })
         }).catch(err => {
 
         })
+    }
+
+
+    saveVoidVTC = () => {
+
+        if (this.validateVTCVoidList()) {
+            let modal = ModalAlert.createProgressModal('Fetching Data...', false)
+
+            let formData = new FormData();
+
+            formData.append("visa_type", 0);
+            formData.append("user_id", this.props.userData.user_id);
+            formData.append("policy_id", this.props.navigation.state.params.id);
+
+            let list = [...this.state.voidList]
+            for (let i = 0; i < list.length; i++) {
+                formData.append("insured[" + i + "]", list[i].userName);
+                formData.append("docs_types[" + i + "]", list[i].docType);
+                formData.append("documents[" + i + "]", {
+                    uri: list[i].document.path,
+                    type: list[i].document.mime,
+                    name: 'Image ' + list[i].documentsName,
+
+                })
+                formData.append("remark[" + i + "]", list[i].remarks);
+            }
+
+            SSOServices.saveVoidVTC(formData).then(res => {
+
+                ModalAlert.createModal({ text: 'Alert' }, { text: res.message }, false,
+                    ModalAlert.createSecondaryButton('Ok', () => {
+                        const resetAction = StackActions.reset({
+                            index: 0,
+                            actions: [NavigationActions.navigate({ routeName: 'HomeInitial' })],
+                        });
+                        this.props.navigation.dispatch(resetAction);
+                        ModalAlert.hideAll()
+                    }))
+            }).catch(err => {
+                ModalAlert.hide(modal);
+                ModalAlert.error(err.message)
+            })
+        }
+
     }
 
     getCancel = () => {
@@ -264,12 +332,12 @@ class cancelpolicy extends React.Component {
                     name = image.path.slice(image.path.length - 16, image.path.length)
                 }
 
-                let list = [...this.state.voidList]
+                let list = [...this.state.voidListSV]
                 list[this.state.voidIndex].copyPassPort = image
                 list[this.state.voidIndex].copyPassPortText = name
 
                 this.setState({
-                    voidList: list
+                    voidListSV: list
                 });
                 break;
 
@@ -282,12 +350,12 @@ class cancelpolicy extends React.Component {
                     name = image.path.slice(image.path.length - 16, image.path.length)
                 }
 
-                let list = [...this.state.voidList]
+                let list = [...this.state.voidListSV]
                 list[this.state.voidIndex].visaDoc = image
                 list[this.state.voidIndex].visaDocName = name
 
                 this.setState({
-                    voidList: list
+                    voidListSV: list
                 });
                 break;
 
@@ -327,6 +395,23 @@ class cancelpolicy extends React.Component {
 
             }
 
+
+            case 12: {
+                let name = ''
+                if (image.path) {
+                    name = image.path.slice(image.path.length - 16, image.path.length)
+                }
+
+                let list = [...this.state.voidList]
+                list[this.state.voidIndex].document = image
+                list[this.state.voidIndex].documentsName = name
+
+                this.setState({
+                    voidList: list
+                });
+                break;
+
+            }
             default: {
                 this.setState({
                     refusalImage: image,
@@ -816,13 +901,13 @@ class cancelpolicy extends React.Component {
     }
 
     voidApi = () => {
-        if (this.validateVoidList()) {
+        if (this.validateSVVoidList()) {
             let modal = ModalAlert.createProgressModal('Please wait...')
             let formData = new FormData();
             formData.append("user_id", this.props.userData.user_id);
             formData.append("policy_id", this.props.navigation.state.params.id);
-            for (let index = 0; index < this.state.voidList.length; index++) {
-                const element = this.state.voidList[index];
+            for (let index = 0; index < this.state.voidListSV.length; index++) {
+                const element = this.state.voidListSV[index];
 
                 formData.append("insured[]", element.userName);
                 formData.append("remark[]", element.remarks);
@@ -866,7 +951,7 @@ class cancelpolicy extends React.Component {
     onPressCancel = () => {
         switch (this.state.options) {
             case 'void':
-                this.voidApi()
+                this.state.visaType == 1 ? this.voidApi() : this.saveVoidVTC()
                 break;
             case 'cancellation':
                 this.cancellationApi()
@@ -906,13 +991,15 @@ class cancelpolicy extends React.Component {
             let listRefund = []
 
             let voidList = []
-
+            let voidListSV = []
             this.setState({
                 nonFinEmail: res.data.getquoteData.policy_holder_email,
                 nonFinCity: res.data.getquoteData.policy_holder_city,
                 nonFinPostalCode: res.data.getquoteData.policy_holder_postal_code,
                 nonFinAddress: res.data.getquoteData.policy_holder_address,
                 nonFinPhone: res.data.getquoteData.policy_holder_phone,
+
+                visaType: res.data.getquoteData.visa_type
             })
 
 
@@ -934,7 +1021,7 @@ class cancelpolicy extends React.Component {
                 }
                 listRefund.push(obj)
 
-                let voidObj = {
+                let voidSVObj = {
                     userName: '',
                     copyPassPort: null,
                     copyPassPortText: 'Choose File',
@@ -942,16 +1029,27 @@ class cancelpolicy extends React.Component {
                     visaDocName: 'Choose File',
                     remarks: ''
                 }
+
+                let voidObj = {
+                    userName: '',
+                    docType: '',
+                    documentsName: 'Choose File',
+                    document: null,
+                    remarks: ''
+                }
                 voidList.push(voidObj)
+                voidListSV.push(voidSVObj)
             }
 
-            console.log(listRefund)
+
 
             this.setState({
                 insuredList: list,
                 refundMidTermData: listRefund,
                 refundList: [listRefund[0]],
-                voidList: [voidList[0]],
+                voidList: voidList.length > 0 ? [voidList[0]] : [],
+                voidListSV: voidListSV.length > 0 ? [voidListSV[0]] : [],
+                voidListSVTemp: voidListSV,
                 voidListTemp: voidList
             })
         }).catch(err => {
@@ -993,6 +1091,7 @@ class cancelpolicy extends React.Component {
                         <DatePicker
                             datePicked={(data) => this.handleDatePicked(data, 1)}
                             dateCanceled={() => this.setState({ fromDate: false })}
+                            minimumDate={new Date()}
                             showDate={this.state.fromDate} />
                         <View style={[styles.singleitem, { justifyContent: 'flex-start' }]}>
                             <Text style={{ fontWeight: '700', marginStart: 20, width: '50%', marginStart: 25, fontSize: 15, color: 'black' }}>Remarks *: </Text>
@@ -1046,38 +1145,83 @@ class cancelpolicy extends React.Component {
         }
     }
 
-    selectUserVoid = (value, item, i) => {
+
+    setDocumentType = (value, item, i) => {
         let list = [...this.state.voidList]
 
-
-        for (let index = 0; index < list.length; index++) {
-            const element = list[index];
-            if (element.userName == value) {
-                ModalAlert.error("Insured Person already selected.")
-                return
-            }
-        }
-
-        list[i].userName = value
-
+        list[i].docType = value
 
         this.setState({
             voidList: list
         })
+    }
+    selectUserVoid = (value, item, i) => {
+
+        if (this.state.visaType == 1) {
+            let list = [...this.state.voidListSV]
+
+
+            for (let index = 0; index < list.length; index++) {
+                const element = list[index];
+                if (element.userName == value) {
+                    ModalAlert.error("Insured Person already selected.")
+                    return
+                }
+            }
+
+            list[i].userName = value
+
+
+            this.setState({
+                voidListSV: list
+            })
+
+        } else {
+            let list = [...this.state.voidList]
+
+
+            for (let index = 0; index < list.length; index++) {
+                const element = list[index];
+                if (element.userName == value) {
+                    ModalAlert.error("Insured Person already selected.")
+                    return
+                }
+            }
+            list[i].userName = value
+
+            this.setState({
+                voidList: list
+            })
+
+        }
 
     }
 
+    renderVoidSuperVisa = ({ item, index }) => {
 
-
-    renderVoidList = ({ item, index }) => {
+        console.log(item)
         return (
             <View>
-                <DropDownView
-                    styles={{ alignSelf: 'flex-start', marginStart: 10, marginTop: 20 }}
-                    childData={this.state.insuredList}
-                    value={item.userName}
-                    onItemSelected={(value) => this.selectUserVoid(value, item, index)}
-                    dropDownTitle={"Select an Insured:"} />
+                <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: 'center' }}>
+                    <DropDownView
+                        styles={{ alignSelf: 'flex-start', marginStart: 10, marginTop: 20 }}
+                        childData={this.state.insuredList}
+                        value={item.userName}
+                        onItemSelected={(value) => this.selectUserVoid(value, item, index)}
+                        dropDownTitle={"Select an Insured:"} />
+
+                    {index != 0 && <TouchableOpacity onPress={() => {
+                        let list = [...this.state.voidListSV]
+                        list.splice(index, 1)
+
+                        this.setState({
+                            voidListSV: list
+                        })
+                    }}>
+                        <Image style={{ width: 60, height: 60, marginTop: 50, marginEnd: 20 }} source={require('../../assets/images/cross.png')} />
+                    </TouchableOpacity>}
+                </View>
+
 
                 <View>
 
@@ -1092,6 +1236,61 @@ class cancelpolicy extends React.Component {
                         <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', fontSize: 15, color: 'black' }}>Visa Rejection Document*: </Text>
                         <TouchableOpacity onPress={() => this.onPressCameraVoid(9, index)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
                             <Text style={{ paddingTop: 10, paddingStart: 10, paddingBottom: 10 }} >{item.visaDocName}</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                </View>
+
+                <View style={[styles.singleitem, { justifyContent: 'flex-start' }]}>
+                    <Text style={{ fontWeight: '700', marginStart: 20, width: '50%', marginStart: 25, fontSize: 15, color: 'black' }}>Remarks *: </Text>
+                    <View style={{ width: '40%', marginTop: -30 }}>
+                        <TextInputComponent
+                            isSecure={false}
+                            placeholder={""}
+                            keyboardType={"default"}
+                            icon={-1}
+                            disable={this.state.cancelled}
+                            styles={{ width: '100%', alignSelf: 'flex-start', alignContent: 'flex-start', justifyContent: 'flex-start', marginStart: 0 }}
+                            value={item.remarks}
+                            onChangeText={(text) => {
+                                let list = [...this.state.voidListSV]
+                                list[index].remarks = text
+                                this.setState({
+                                    voidListSV: list
+                                })
+                            }}
+                            isShowDrawable={false}
+                        />
+                    </View>
+
+                </View>
+            </View>
+        )
+    }
+
+    renderVoidList = ({ item, index }) => {
+        return (
+            <View>
+                <DropDownView
+                    styles={{ alignSelf: 'flex-start', marginStart: 10, marginTop: 20 }}
+                    childData={this.state.insuredList}
+                    value={item.userName}
+                    onItemSelected={(value) => this.selectUserVoid(value, item, index)}
+                    dropDownTitle={"Select an Insured:"} />
+
+                <View>
+
+                    <DropDownView
+                        styles={{ alignSelf: 'flex-start', marginStart: 10, marginTop: 20 }}
+                        childData={this.state.documentTypes}
+                        value={item.docType}
+                        onItemSelected={(value) => this.setDocumentType(value, item, index)}
+                        dropDownTitle={"Document Type*:"} />
+
+                    <View style={[styles.singleitem, { justifyContent: 'space-evenly' }]}>
+                        <Text style={{ fontWeight: '700', marginStart: 10, width: '50%', fontSize: 15, color: 'black' }}>File *: </Text>
+                        <TouchableOpacity onPress={() => this.onPressCameraVoid(12, index)} style={{ width: '35%', borderRadius: 5, borderWidth: 1, marginEnd: 20 }}>
+                            <Text style={{ paddingTop: 10, paddingStart: 10, paddingBottom: 10 }} >{item.documentsName}</Text>
                         </TouchableOpacity>
                     </View>
 
@@ -1126,7 +1325,7 @@ class cancelpolicy extends React.Component {
 
 
     onPressAddVoid = () => {
-        if (this.validateVoidList()) {
+        if (this.validateVTCVoidList()) {
             let list = [...this.state.voidList]
 
             if (list.length == this.state.voidListTemp.length) {
@@ -1142,11 +1341,27 @@ class cancelpolicy extends React.Component {
         }
     }
 
-    validateVoidList = () => {
-        for (let index = 0; index < this.state.voidList.length; index++) {
-            const element = this.state.voidList[index];
+    onPressAddVoidSV = () => {
+        if (!this.validateSVVoidList()) {
+            let list = [...this.state.voidListSV]
 
-            console.log(this.state.voidList)
+            if (list.length == this.state.voidListSVTemp.length) {
+                ModalAlert.error("All Insured list were added.")
+                return
+            }
+
+            list.push(this.state.voidListSVTemp[list.length])
+
+            this.setState({
+                voidListSV: list
+            })
+        }
+    }
+
+    validateSVVoidList = () => {
+        for (let index = 0; index < this.state.voidListSV.length; index++) {
+            const element = this.state.voidListSV[index];
+
 
             if (element.userName == '') {
                 ModalAlert.error('Please select the user')
@@ -1174,19 +1389,76 @@ class cancelpolicy extends React.Component {
         return true;
     }
 
+
+    validateVTCVoidList = () => {
+        for (let index = 0; index < this.state.voidList.length; index++) {
+            const element = this.state.voidList[index];
+            if (element.userName == '') {
+                ModalAlert.error('Please select the user')
+                return false
+            }
+
+
+
+            if (element.documentTypes == "") {
+                ModalAlert.error('Please select the document type.')
+                return false
+            }
+
+
+            if (element.document == null) {
+                ModalAlert.error('Please upload the document.')
+                return false
+            }
+
+            if (element.remarks == '') {
+                ModalAlert.error('Please enter Remarks')
+                return false
+            }
+
+        }
+
+        return true;
+    }
+
+    getProductName = () => {
+        if (this.state.product == "" || this.state.product == "VTC") {
+            return this.state.visaType == 1 ? `SVVTV` : `VTC`
+        } else {
+            return (this.state.studentVisa == "Daily" ? "Single" : "Annual") + " " + "Trip"
+        }
+    }
+
     renderVoid = () => {
         return (
             <View>
 
                 <View style={{ flexDirection: 'row', marginTop: 30, justifyContent: 'space-between', width: '90%', alignSelf: 'center' }}>
-                    <Text style={{ fontSize: 20 }}>Type : <Text style={{ color: 'rgb(62, 185, 186)', fontWeight: '600' }}>SVVTC</Text></Text>
-                    <TouchableOpacity onPress={() => this.onPressAddVoid()} style={{ backgroundColor: 'rgb(62, 185, 186)', paddingStart: 20, paddingEnd: 20, paddingTop: 10, paddingBottom: 10, borderRadius: 10 }}>
+                    <Text style={{ fontSize: 20 }}>Type :{" "}
+                        <Text style={{ color: 'rgb(62, 185, 186)', fontWeight: '600' }}>
+                            {this.getProductName()}
+                        </Text></Text>
+                    <TouchableOpacity onPress={() => this.state.visaType == 1 ?
+                        this.onPressAddVoidSV() : this.onPressAddVoid()}
+                        style={{
+                            backgroundColor: 'rgb(62, 185, 186)', paddingStart: 20, paddingEnd: 20,
+                            paddingTop: 10, paddingBottom: 10, borderRadius: 10
+                        }}>
                         <Text style={{ color: 'white', fontWeight: '600' }}>Add New</Text>
                     </TouchableOpacity>
                 </View>
-                <FlatList
-                    renderItem={this.renderVoidList}
-                    data={this.state.voidList} />
+
+                {
+                    this.state.visaType == 1 ?
+                        <FlatList
+                            renderItem={this.renderVoidSuperVisa}
+                            data={this.state.voidListSV} />
+                        :
+                        <FlatList
+                            renderItem={this.renderVoidList}
+                            data={this.state.voidList} />
+                }
+
             </View>
         )
     }
@@ -1234,9 +1506,20 @@ class cancelpolicy extends React.Component {
                         value={item.insuredName}
                         onItemSelected={(value) => this.selectUser(value, item, index)}
                         dropDownTitle={"Select an Insured:"} />
+
+                    {index != 0 && <TouchableOpacity onPress={() => {
+                        let list = [...this.state.refundList]
+                        list.splice(index, 1)
+
+                        this.setState({
+                            refundList: list
+                        })
+                    }}>
+                        <Image style={{ width: 60, height: 60, marginTop: 50, marginEnd: 20 }} source={require('../../assets/images/cross.png')} />
+                    </TouchableOpacity>}
                 </View>
 
-                <Text style={{ fontWeight: '600', marginStart:20, marginTop: 20, fontSize: 20, marginEnd: 20 }}>Premium Amount:{"   "}$ {item.premiumAmount}</Text>
+                <Text style={{ fontWeight: '600', marginStart: 20, marginTop: 20, fontSize: 20, marginEnd: 20 }}>Premium Amount:{"   "}$ {item.premiumAmount}</Text>
 
                 {
                     item.isCheck &&
@@ -1379,7 +1662,7 @@ class cancelpolicy extends React.Component {
                     <DatePicker
                         datePicked={(data) => this.handleDatePicked(data, 2)}
                         dateCanceled={() => this.setState({ midTermDate: false })}
-                        // minimumDate={d1}
+                        minimumDate={new Date()}
                         showDate={this.state.midTermDate} />
 
                 </View>
@@ -1432,8 +1715,8 @@ class cancelpolicy extends React.Component {
 
                 {this.state.financial === "non_fin" && <View>
 
-                    <View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
-                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Email*</Text>
+                    <View style={{ marginEnd: 12, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 30 }}>Email*</Text>
 
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditEmail: status })}
@@ -1451,8 +1734,8 @@ class cancelpolicy extends React.Component {
                         onChangeText={(text) => this.setState({ nonFinEmail: text })}
                         isShowDrawable={false}
                     />
-                     <View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
-                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>City*</Text>
+                    <View style={{ marginEnd: 12, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 30 }}>City*</Text>
 
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditCity: status })}
@@ -1470,8 +1753,8 @@ class cancelpolicy extends React.Component {
                         onChangeText={(text) => this.setState({ nonFinCity: text })}
                         isShowDrawable={false}
                     />
-                    <View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
-                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Postal Code*</Text>
+                    <View style={{ marginEnd: 12, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 30 }}>Postal Code*</Text>
 
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditPostalCode: status })}
@@ -1489,8 +1772,8 @@ class cancelpolicy extends React.Component {
                         onChangeText={(text) => this.setState({ nonFinPostalCode: text })}
                         isShowDrawable={false}
                     />
-  <View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
-                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Address*</Text>
+                    <View style={{ marginEnd: 12, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 30 }}>Address*</Text>
 
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditAddress: status })}
@@ -1509,8 +1792,8 @@ class cancelpolicy extends React.Component {
                         isShowDrawable={false}
                     />
 
-<View style={{ marginEnd: 12,flexDirection:'row',justifyContent:'space-between' }}>
-                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Phone*</Text>
+                    <View style={{ marginEnd: 12, flexDirection: 'row', justifyContent: 'space-between' }}>
+                        <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 30 }}>Phone*</Text>
 
                         <CheckBoxComponent
                             onClickPress={(status) => this.setState({ isEditPhone: status })}
@@ -1528,7 +1811,7 @@ class cancelpolicy extends React.Component {
                         onChangeText={(text) => this.setState({ nonFinPhone: text })}
                         isShowDrawable={false}
                     />
-                    <Text style={{fontSize:16,fontWeight:'bold',marginStart:20,marginTop:30}}>Remarks*</Text>
+                    <Text style={{ fontSize: 16, fontWeight: 'bold', marginStart: 20, marginTop: 30 }}>Remarks*</Text>
 
                     <TextInputComponent
                         isSecure={false}

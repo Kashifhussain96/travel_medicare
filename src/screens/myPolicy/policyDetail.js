@@ -509,7 +509,7 @@ class PolicyDetails extends React.Component {
 
             <View style={{ justifyContent: 'space-between', marginBottom: 10, marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
                <Text style={{ width: '40%' }}>Action:</Text>
-               <TouchableOpacity style={{ width: '40%' }}>
+               <TouchableOpacity onPress={()=> this.props.navigation.navigate('EditEndoursement',{data:item})} style={{ width: '40%' }}>
                   <Image source={require('../../assets/edit.png')} style={{height:20,width:20}}/>
                </TouchableOpacity>
             </View>
@@ -634,15 +634,15 @@ class PolicyDetails extends React.Component {
             <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '100%', alignSelf: 'center' }}>
                <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
                   <Text style={{ width: '40%' }}>Type:</Text>
-                  <Text style={{ width: '40%' }}>{data[0].type}</Text>
+                  <Text style={{ width: '40%' }}>{data.length > 0 ?  data[0].type : ''}</Text>
                </View>
                <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
                   <Text style={{ width: '40%' }}>Attachment:</Text>
-                  <Text style={{ width: '40%' }}>{data[0].attachment.slice(28, data[0].attachment.length)}</Text>
+                  <Text style={{ width: '40%' }}>{data.length > 0 ? data[0].attachment.slice(28, data[0].attachment.length):''}</Text>
                </View>
                <View style={{ justifyContent: 'space-between', marginStart: 20, marginBottom: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
                   <Text style={{ width: '40%' }}>Download:</Text>
-                  <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + data[0].attachment) }} style={{ width: '40%' }}>
+                  <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + data.length >0 ? data[0].attachment : "") }} style={{ width: '40%' }}>
                      <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
                   </TouchableOpacity>
                </View>
@@ -651,15 +651,15 @@ class PolicyDetails extends React.Component {
             <View style={{ backgroundColor: 'white', elevation: 5, marginTop: 20, borderRadius: 20, borderWidth: 1, width: '100%', alignSelf: 'center' }}>
                <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
                   <Text style={{ width: '40%' }}>Type:</Text>
-                  <Text style={{ width: '40%' }}>{data[1].type}</Text>
+                  <Text style={{ width: '40%' }}>{data.length > 0 ? data[1].type : ''}</Text>
                </View>
                <View style={{ justifyContent: 'space-between', marginStart: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
                   <Text style={{ width: '40%' }}>Attachment:</Text>
-                  <Text style={{ width: '40%' }}>{data[1].attachment.slice(28, data[1].attachment.length)}</Text>
+                  <Text style={{ width: '40%' }}>{data.length > 0 ?data[1].attachment.slice(28, data[1].attachment.length) : ''}</Text>
                </View>
                <View style={{ justifyContent: 'space-between', marginStart: 20, marginBottom: 20, marginEnd: 20, marginTop: 20, flexDirection: 'row' }}>
                   <Text style={{ width: '40%' }}>Download:</Text>
-                  <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + data[1].attachment) }} style={{ width: '40%' }}>
+                  <TouchableOpacity onPress={() => { Linking.openURL("https://www.travelmedicare.com/public/endorsementDocs/" + data.length > 0 ? data[1].attachment : '') }} style={{ width: '40%' }}>
                      <Image source={require('../../assets/download.png')} style={{ width: 20, height: 20 }} />
                   </TouchableOpacity>
                </View>

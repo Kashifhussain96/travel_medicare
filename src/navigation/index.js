@@ -83,6 +83,12 @@ export const MainStack = createStackNavigator(
         header: null,
       },
     },
+    EditEndoursement: {
+      screen: ScreenName.EditEndoursement,
+      navigationOptions: {
+        header: null,
+      },
+    },
     PolicyClaim: {
       screen: ScreenName.PolicyClaim,
       navigationOptions: {

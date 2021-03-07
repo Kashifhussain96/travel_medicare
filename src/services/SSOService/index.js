@@ -57,6 +57,25 @@ export function stage1Api(data) {
   });
 }
 
+
+
+export function getendorsementfields(data) {
+  return requestMultiPart({
+    url: `getendorsementfields`,
+    method: "POST",
+    data: data,
+  });
+}
+
+
+export function updateEndorsements(data) {
+  return requestMultiPart({
+    url: `UpdateEndorsements`,
+    method: "POST",
+    data: data,
+  });
+}
+
 export function stage2Api(data) {
   return requestMultiPart({
     url: `save_licence_details`,
@@ -112,6 +131,15 @@ export function getMyQuote(data) {
     data: data,
   });
 }
+
+export function getAllUsersRoleWise(data) {
+  return request({
+    url: `getAgentByLoginIdAndRole`,
+    method: "POST",
+    data: data,
+  });
+}
+
 
 export function editQuote(data) {
   return request({
@@ -220,6 +248,15 @@ export function savePolicy(data) {
   });
 }
 
+
+export function savePaymentMulticard(data) {
+  return requestMultiPart({
+    url: `save_payment_multicard`,
+    method: "POST",
+    data: data,
+  });
+}
+
 export function savePolicySTC(data) {
   return requestMultiPart({
     url: `savePolicy_stc`,
@@ -232,6 +269,15 @@ export function getQuoteById(data) {
   return requestMultiPart({
     url: `getQuoteById/` + data,
     method: "GET",
+  });
+}
+
+
+export function saveVoidVTC(data) {
+  return requestMultiPart({
+    url: `save_voidVTC_endorsement`,
+    method: "POST",
+    data:data
   });
 }
 

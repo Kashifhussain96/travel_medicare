@@ -11,6 +11,9 @@ import {
   ScrollView,
   FlatList,
 } from "react-native";
+import DatePicker from "../../components/datePicker";
+import { getDateStringFromDate } from "../../utils";
+
 // import SignInNavigator from '../../navigation/SignInNavigator'
 import ToolBarComponent from "../../components/toolbar";
 import { createAppContainer, createSwitchNavigator } from "react-navigation";
@@ -33,23 +36,57 @@ class MyQuote extends React.Component {
       to: moment().format("YYYY-MM-DD"),
       toDate: "",
       fromDate: "",
+      pageNo: 1,
+      product: "",
+      roles: [],
+      users: [],
+      user: '',
+      userRole :  props.userData.role,
+      role : ''
     };
   }
 
   async componentDidMount() {
-    this.getData();
+    await this.getData(this.state.pageNo, "", this.props.userData.role, this.state.fromDate, this.state.toDate);
+
+    await this.getRole();
   }
 
-  getData = () => {
+  getData = (pageNo, product, user, fromDate, toDate) => {
     let modal = ModalAlert.createProgressModal("Fetching Data...", false);
     let formData = new FormData();
+
+    formData.append("page_no", pageNo);
+
+    if (product != "") {
+      formData.append("product", product);
+    }
+
+
+    if (user != "") {
+      formData.append("role", user);
+    }else{
+      formData.append("role", this.state.userRole);
+    }
+
+
+    if (fromDate != "") {
+      formData.append("from_date", fromDate);
+    }
+
+
+    if (toDate != "") {
+      formData.append("to_date", toDate);
+    }
+
     formData.append("user_id", this.props.userData.user_id);
-    formData.append("role", this.props.userData.role);
+
     SSOServices.getMyQuote(formData)
       .then((res) => {
         ModalAlert.hide(modal);
+        let list = [...this.state.data, ...res.data]
         this.setState({
-          data: res.data,
+          data: list
         });
       })
       .catch((err) => {
@@ -57,18 +94,80 @@ class MyQuote extends React.Component {
       });
   };
 
+
+  getAllUsersRoleWise = (role) => {
+    let modal = ModalAlert.createProgressModal("Fetching Data...", false);
+    let formData = new FormData();
+    formData.append("role", role);
+    formData.append("user_id", this.props.userData.user_id);
+    formData.append("login_role", this.props.userData.role);
+    SSOServices.getAllUsersRoleWise(formData)
+      .then((res) => {
+        ModalAlert.hide(modal);
+        let data = []
+        for (let i = 0; i < res.data.length; i++) {
+          data.push({ value: res.data[i].role, label: res.data[i].user_name })
+
+        }
+
+        this.setState({
+          users: data
+        })
+      })
+      .catch((err) => {
+        ModalAlert.hide(modal);
+      });
+  }
+
+
+  getRole = () => {
+    let modal = ModalAlert.createProgressModal("Fetching Data...", false);
+    SSOServices.getRole(this.props.userData.role)
+      .then((res) => {
+        ModalAlert.hide(modal);
+        let data = []
+        for (let i = 0; i < res.data.length; i++) {
+          data.push({ value: res.data[i].role, label: res.data[i].role_name })
+
+        }
+
+        this.setState({
+          roles: data
+        })
+      })
+      .catch((err) => {
+        ModalAlert.hide(modal);
+      });
+  }
+
   renderButtons = () => {
     return (
       <View style={{ flexDirection: "row", alignSelf: "center" }}>
         <TouchableOpacity
-          onPress={() => { }}
+          onPress={() => {
+            this.setState({
+              data : []
+            })
+            this.getData(1, this.state.product, this.state.role, this.state.fromDate, this.state.toDate)
+           }}
           activeOpacity={0.7}
           style={styles.nextButton}
         >
           <Text style={styles.next}>Search</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => { }}
+          onPress={() => { 
+            this.setState({
+              fromDate : '',
+              toDate : '',
+              user : '',
+              role :'',
+              product : -1,
+              pageNo :1
+            },()=>{
+              this.getData(this.state.pageNo,this.state.product,this.state.role, this.state.fromDate,this.state.toDate )
+            })
+          }}
           activeOpacity={0.7}
           style={styles.nextButton}
         >
@@ -83,27 +182,26 @@ class MyQuote extends React.Component {
       case 0:
         break;
       case 1:
-        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: false,isEdit: false });
+        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: false, isEdit: false });
         break;
       case 2:
-        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: true ,isEdit: false});
+        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: true, isEdit: false });
         break;
       case 3:
-        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: false,isEdit: true });
+        this.props.navigation.navigate("GetQuote", { id: item.quotation_id, isCopy: false, isEdit: true });
         break;
     }
   };
 
   renderItem = ({ item, index }) => {
-
-    console.log(item.trip_type)
+    console.log(item.quote_payment_status)
     return (
       <View style={[styles.itemView]}>
         <Text style={styles.listItemText}>{item.user_name}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
         <Text style={styles.listItemText}>{item.role_name}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
-        <Text style={styles.listItemText}>{item.product == "VTC" ? `Visitors to Canada` : `Students to Canada`}</Text>
+        <Text style={styles.listItemText}>{item.product == "VTC" || item.product == "" ? `Visitors to Canada` : `Students to Canada`}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
         <Text style={styles.listItemText}>{item.quotaion_no}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
@@ -113,7 +211,7 @@ class MyQuote extends React.Component {
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
         <Text style={styles.listItemText}>{item.policy_holder_name}</Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
-        <Text style={styles.listItemText}>CAD {item.quote_amount}</Text>
+        <Text style={styles.listItemText}>CAD {item.quote_amount} <Text style={{color:'red'}}>{item.quote_payment_status != null && `(Paid Partially)`}</Text></Text>
         <View style={{ height: 100, backgroundColor: "black", width: 1 }} />
         <View
           style={{
@@ -178,7 +276,10 @@ class MyQuote extends React.Component {
         .then((res) => {
           ModalAlert.hide(modal);
           ModalAlert.alert(res.message);
-          this.getData();
+          this.setState({
+            data: []
+          })
+          this.getData(1, this.state.product, this.state.user, this.state.fromDate, this.state.toDate);
         })
         .catch((err) => {
           ModalAlert.hide(modal);
@@ -186,6 +287,23 @@ class MyQuote extends React.Component {
         });
     }
   };
+
+  onItemSelectedDateList = (value) => {
+
+    let date = getDateStringFromDate(value);
+
+    if(this.state.dateStatus == 1){
+      this.setState({
+        fromDate : date,
+        showDate : false
+      })
+    }else{
+      this.setState({
+        toDate : date,
+        showDate : false
+      })
+    }
+  }
 
   renderTableView = () => {
     return (
@@ -204,22 +322,40 @@ class MyQuote extends React.Component {
               <Text style={[styles.itemText, { marginStart: 30 }]}>Action</Text>
             </View>
 
+         
             <View style={{ flex: 1 }}>
               {this.state.data.length > 0 ? (
-                <FlatList data={this.state.data} renderItem={this.renderItem} />
+                <FlatList
+                  data={this.state.data}
+                  initialNumToRender={8}
+                  maxToRenderPerBatch={2}
+                  onEndReachedThreshold={0.1}
+                  onMomentumScrollBegin={() => { this.onEndReached = false; }}
+                  onEndReached={() => {
+                    if (!this.onEndReached) {
+                      this.setState({
+                        pageNo: this.state.pageNo + 1
+                      }, () => {
+                        this.getData(this.state.pageNo, this.state.product, this.state.user, this.state.fromDate, this.state.toDate)
+                      })
+                      this.onEndReached = true;
+                    }
+                  }
+                  }
+                  renderItem={this.renderItem} />
               ) : (
-                  <Text
-                    style={{
-                      flex: 1,
-                      marginStart: 50,
-                      fontSize: 30,
-                      fontWeight: "600",
-                      marginTop: 100,
-                    }}
-                  >
-                    No Data
-                  </Text>
-                )}
+                <Text
+                  style={{
+                    flex: 1,
+                    marginStart: 50,
+                    fontSize: 30,
+                    fontWeight: "600",
+                    marginTop: 100,
+                  }}
+                >
+                  No Data
+                </Text>
+              )}
             </View>
           </View>
         </ScrollView>
@@ -235,19 +371,39 @@ class MyQuote extends React.Component {
           navigation={this.props.navigation}
         />
 
+        <DropDownView
+          childData={[
+            { label: "VTC Product", value: "VTC" },
+            { label: "STC Product", value: "STC" },
+          ]}
+          styles={{ width: '100%' }}
+          value={this.state.product}
+          onItemSelected={(value) => {
+            this.setState({
+              product: value
+            })
+          }}
+          dropDownTitle={"Select Product:"}
+        />
+
         <View style={styles.flexDirection}>
           <DropDownView
-            childData={[
-              { label: "MGA", value: "MGA" },
-              { label: "AGA", value: "AGA" },
-              { label: "Advisor", value: "Advisor" },
-            ]}
-            onItemSelected={(value) => this.setState({ role: value })}
+            childData={this.state.roles}
+            value={this.state.role}
+            onItemSelected={(value) => {
+              this.setState({ role: value }, () => {
+                this.getAllUsersRoleWise(value)
+              })
+
+            }}
             dropDownTitle={"Select Role:"}
           />
           <DropDownView
-            childData={[]}
-            onItemSelected={(value) => this.setState({ user: value })}
+            childData={this.state.users}
+            value={this.state.user}
+            onItemSelected={(value) => {
+              this.setState({ user: value })
+            }}
             dropDownTitle={"Select User:"}
           />
         </View>
@@ -259,7 +415,13 @@ class MyQuote extends React.Component {
               style={{ width: "95%", marginEnd: 20 }}
               onPress={() => { }}
               showCalender={true}
-              title={""}
+              onPress={() => {
+                this.setState({
+                  showDate : true,
+                  dateStatus : 1
+                })
+               }}
+              title={this.state.fromDate}
             />
           </View>
           <View style={{ width: "50%" }}>
@@ -267,11 +429,26 @@ class MyQuote extends React.Component {
             <CalenderView
               style={{ width: "95%", marginEnd: 10 }}
               showCalender={true}
-              onPress={() => { }}
-              title={""}
+              onPress={() => {
+                this.setState({
+                  showDate : true,
+                  dateStatus : 2
+                })
+               }}
+               title={this.state.toDate}
             />
           </View>
         </View>
+
+        <DatePicker
+              datePicked={(data) =>
+                this.onItemSelectedDateList(data)
+              }
+              dateCanceled={() => this.setState({ showDate: false })}
+              showDate={this.state.showDate}
+            />
+
+
 
         {this.renderButtons()}
 
@@ -299,6 +476,7 @@ const styles = StyleSheet.create({
   flexDirection: {
     flexDirection: "row",
     width: "100%",
+    marginTop: 10,
     alignSelf: "center",
   },
   flexDirection1: {

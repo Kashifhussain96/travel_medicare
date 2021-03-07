@@ -21,6 +21,7 @@ import Payment from "../screens/getQuote/payment";
 import PolicyClaim from "../screens/claimPolicy";
 import EditQuote from "../screens/editQuote";
 
+import EditEndoursement from "../screens/myPolicy/editEndoursement";
 export default {
   SplashScreen,
   Login,
@@ -44,4 +45,5 @@ export default {
   CancelPolicy,
   PolicyClaim,
   Payment,
+  EditEndoursement
 };
